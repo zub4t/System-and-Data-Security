@@ -115,6 +115,14 @@ public class AdmServer {
         options.addOption(setSocket);
 
 
+        Option echo = Option.builder("echo").longOpt("echo")
+                .argName("echo")
+                .required(false)
+                .hasArg()
+                .desc("echo ").build();
+        options.addOption(echo);
+
+
         CommandLine cmd;
         CommandLineParser parser = new BasicParser();
         HelpFormatter helper = new HelpFormatter();
@@ -260,6 +268,17 @@ public class AdmServer {
                         if (cmd.hasOption("ss")) {
                             Peer.socketChannel = socketChannel;
 
+                        }
+
+                        if (cmd.hasOption("echo")) {
+                            String value = cmd.getOptionValue("echo");
+                            if (Peer.socketChannel == null) {
+                                socketChannel.write(ByteBuffer.wrap("NO SocketChannel associated ".getBytes(StandardCharsets.UTF_8)));
+
+                            }else{
+                                Peer.socketChannel.write(ByteBuffer.wrap(value.getBytes(StandardCharsets.UTF_8)));
+
+                            }
                         }
 
                     } catch (Exception e) {

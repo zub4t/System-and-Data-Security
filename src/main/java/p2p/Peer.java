@@ -21,7 +21,6 @@ import static util.Constants.*;
 
 public class Peer {
 
-
     public Node localNode;
     private DatagramChannel inChannel;
     private RoutingTable routingTable;
@@ -37,7 +36,7 @@ public class Peer {
             inChannel = DatagramChannel.open();
             InetSocketAddress iAdd = localNode.getAddr();
             inChannel.socket().bind(iAdd);
-            //  System.out.println("Server Started: " + iAdd);
+            // System.out.println("Server Started: " + iAdd);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -45,7 +44,8 @@ public class Peer {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        Node localNode = new Node(Key.random(), new InetSocketAddress("localhost", Util.getRandomNumber(2000, 65535)), 0);
+        Node localNode = new Node(Key.random(), new InetSocketAddress("localhost", Util.getRandomNumber(2000, 65535)),
+                0);
         CommunicationInterface communicationInterface = new CommunicationInterface();
         RoutingTable routingTable = new RoutingTable(20, localNode.getId(), communicationInterface);
         Peer p = new Peer(localNode, routingTable);
@@ -63,7 +63,6 @@ public class Peer {
 
     }
 
-
     public Thread startService() {
         return new Thread(() -> {
             try {
@@ -76,9 +75,9 @@ public class Peer {
 
     }
 
-
     public void addWellKnowPeer(String key, String ip, int port) {
-        routingTable.addNode(Node.builder().addr(new InetSocketAddress(ip, port)).id(Key.build(key)).lastSeen(System.currentTimeMillis()).build());
+        routingTable.addNode(Node.builder().addr(new InetSocketAddress(ip, port)).id(Key.build(key))
+                .lastSeen(System.currentTimeMillis()).build());
     }
 
     public String listRoutingTable() {
@@ -112,7 +111,6 @@ public class Peer {
         return str;
     }
 
-
     public void ping(String IP, int PORT) {
         long seqNumber = new Random().nextLong();
         KademliaMessage outMessage = KademliaMessage.builder().build();
@@ -121,7 +119,8 @@ public class Peer {
             outMessage.setSeqNumber(Util.longToBytes(seqNumber));
             outMessage.setContent("PING".getBytes(StandardCharsets.UTF_8));
             outMessage.setLocalNode(Util.serializeNode(this.localNode));
-            routingTable.communicationInterface.send(Util.serializeMessage(outMessage), new InetSocketAddress(IP, PORT));
+            routingTable.communicationInterface.send(Util.serializeMessage(outMessage),
+                    new InetSocketAddress(IP, PORT));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -153,7 +152,6 @@ public class Peer {
             outMessage.setLocalNode(Util.serializeNode(this.localNode));
             _findNodeOrValue(key, outMessage, localNode.getAddr());
 
-
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -178,7 +176,7 @@ public class Peer {
 
     public void _storage(Key key, KademliaMessage message, Block block) {
         int bucketId = routingTable.getBucketId(key);
-        //  System.out.println("STORE " + bucketId);
+        // System.out.println("STORE " + bucketId);
         if (bucketId == 0) {
             storage.put(block.getKey(), block);
         } else {
@@ -203,8 +201,7 @@ public class Peer {
                 }
                 System.out.println("ID" + bucketId);
                 if (closest != Integer.MAX_VALUE &&
-                        closestDistance < localNode.getId().getDistance(block.getKey())
-                ) {
+                        closestDistance < localNode.getId().getDistance(block.getKey())) {
                     for (Node node : routingTable.getBuckets()[closest].getNodes()) {
                         routingTable.communicationInterface.send(Util.serializeMessage(message), node.getAddr());
                     }
@@ -217,7 +214,7 @@ public class Peer {
 
     public void _findNodeOrValue(Key key, KademliaMessage message, InetSocketAddress receiver) {
         int bucketId = routingTable.getBucketId(key);
-        //  System.out.println("FINDING " + bucketId);
+        // System.out.println("FINDING " + bucketId);
         if (bucketId == 0) {
             if (message.getType() == FIND_VALUE) {
                 message.setContent(Util.serializeBlock(storage.get(key)));
@@ -249,15 +246,21 @@ public class Peer {
                     }
                 }
 
-
                 System.out.println("ID" + bucketId);
-                if (closest != Integer.MAX_VALUE &&
-                        closestDistance < localNode.getId().getDistance(key)
-                ) {
+                System.out.println("closestDistance" + closestDistance);
+                System.out.println(" storage.get(key) " + storage.get(key));
+                if(closest > localNode.getId().getDistance(key)){
+                    //sou eu quem deveria guardar :c
+                    System.out.println("DEVERIA GUARDAR EU ");
+                }
+
+
+                if ((storage.get(key) == null) ) {
                     for (Node node : routingTable.getBuckets()[closest].getNodes()) {
                         routingTable.communicationInterface.send(Util.serializeMessage(message), node.getAddr());
                     }
                 } else {
+                  
                     if (message.getType() == FIND_VALUE) {
                         message.setContent(Util.serializeBlock(storage.get(key)));
                         message.setType(FIND_VALUE_REPLY);
@@ -283,7 +286,6 @@ public class Peer {
                 int bucketId = -1;
                 full.flip();
 
-
                 Block block;
                 Node n;
                 Node rn;
@@ -296,18 +298,18 @@ public class Peer {
                 System.out.println(message);
                 InetSocketAddress receiver = (Util.deserializeNode(message.getLocalNode())).getAddr();
                 routingTable.addNode(Util.deserializeNode(message.getLocalNode()));
-
-                if (message.getType() != STORE)
-                    for (Map.Entry<Key, Block> entry : this.storage.entrySet()) {
-                        int buketId = routingTable.getBucketId(entry.getKey());
-                        if (routingTable.getBuckets()[buketId].getNodes().size() > 0) {
-                            for (Node node : routingTable.getBuckets()[bucketId].getNodes()) {
-                                routingTable.communicationInterface.send(Util.serializeMessage(message), node.getAddr());
-                            }
-                        }
-                    }
-
-
+                /*
+                 * if (message.getType() != STORE)
+                 * for (Map.Entry<Key, Block> entry : this.storage.entrySet()) {
+                 * int buketId = routingTable.getBucketId(entry.getKey());
+                 * if (routingTable.getBuckets()[buketId].getNodes().size() > 0) {
+                 * for (Node node : routingTable.getBuckets()[bucketId].getNodes()) {
+                 * routingTable.communicationInterface.send(Util.serializeMessage(message),
+                 * node.getAddr());
+                 * }
+                 * }
+                 * }
+                 */
                 switch (message.getType()) {
                     case PING:
                         message.setType(PING_REPLY);
@@ -327,23 +329,34 @@ public class Peer {
                         rn = Util.deserializeNode(message.getLocalNode());
                         block = Util.deserializeBlock(message.getContent());
                         if (socketChannel != null) {
-                            socketChannel.write(ByteBuffer.wrap(("Searching result \n" + rn + "\n" + block.toString()).getBytes(StandardCharsets.UTF_8)));
+                            // socketChannel.write(ByteBuffer.wrap(("Searching result \n" + rn + "\n" +
+                            // block.toString()).getBytes(StandardCharsets.UTF_8)));
+                            System.out.println("***************************");
+                            System.out.println(block);
+                            System.out.println(rn);
+                            System.out.println("***************************");
+
+                            socketChannel
+                                    .write(ByteBuffer.wrap(("Found ").getBytes(StandardCharsets.UTF_8)));
+
                         }
                         break;
                     case FIND_NODE_REPLY:
                         rn = Util.deserializeNode(message.getLocalNode());
                         if (socketChannel != null) {
-                            socketChannel.write(ByteBuffer.wrap(("Searching result \n" + rn.toString()).getBytes(StandardCharsets.UTF_8)));
+                            socketChannel.write(ByteBuffer
+                                    .wrap(("Searching result \n" + rn.toString()).getBytes(StandardCharsets.UTF_8)));
                         }
                         break;
                     case PING_REPLY:
-                        callers.put(Util.deserializeNode(message.getLocalNode()).getId(), Util.deserializeNode(message.getLocalNode()));
+                        callers.put(Util.deserializeNode(message.getLocalNode()).getId(),
+                                Util.deserializeNode(message.getLocalNode()));
                         message.setType(STOP);
                         message.setLocalNode(Util.serializeNode(this.localNode));
                         routingTable.communicationInterface.send(Util.serializeMessage(message), receiver);
                         break;
                     case STOP:
-                        //  System.out.println("STOP");
+                        // System.out.println("STOP");
                         break;
 
                     default:
@@ -355,7 +368,6 @@ public class Peer {
             }
 
         }
-
 
     }
 
