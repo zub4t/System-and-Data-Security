@@ -37,6 +37,7 @@ public class Block implements Serializable {
             logger.log(Level.SEVERE, ex.getMessage());
         }
         StringBuffer buffer = new StringBuffer();
+        block.setHash(new String(buffer));
         return bytes;
     }
 

@@ -50,21 +50,18 @@ public class Key implements Serializable {
             if (b == 0) {
                 prefixLength += 8;
             } else {
-                /* If the byte is not 0, we need to count how many MSBs are 0 */
                 int count = 0;
                 for (int i = 7; i >= 0; i--) {
                     boolean a = (b & (1 << i)) == 0;
                     if (a) {
                         count++;
                     } else {
-                        break;   // Reset the count if we encounter a non-zero number
+                        break;   
                     }
                 }
 
-                /* Add the count of MSB 0s to the prefix length */
                 prefixLength += count;
 
-                /* Break here since we've now covered the MSB 0s */
                 break;
             }
         }
@@ -75,13 +72,7 @@ public class Key implements Serializable {
     public String toString() {
         return this.key.toString(16);
     }
-
     public int getDistance(Key to) {
-        /**
-         * Compute the xor of this and to
-         * Get the index i of the first set bit of the xor returned Key
-         * The distance between them is ID_LENGTH - i
-         */
         return ID_LENGTH - this.xor(to).getFirstSetBitIndex();
     }
 }

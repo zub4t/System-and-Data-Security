@@ -43,6 +43,21 @@ public class CommunicationInterface {
 
     }
 
+    public void send(InetSocketAddress receiver, KademliaMessage msg) {
+        try {
+            DatagramChannel channel = DatagramChannel.open();
+            int bytesSent = channel.send(ByteBuffer.wrap(Util.serializeMessage(msg)), receiver);
+
+            System.out.println(" Sent " + bytesSent);
+            channel.close();
+        } catch (Exception e) {
+
+            System.out.println(e);
+            e.printStackTrace();
+        }
+
+    }
+
     public void close() throws IOException {
     }
 }

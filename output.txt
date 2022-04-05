@@ -1,2 +1,2 @@
 usage: MPM software--:
- [-ap <addWellKnowPeer>] [-echo <echo>] [-fn <findNode>] [-fv <findValue>] [-g <generate>] [-lrt] [-lsb] [-ltb] [-p <ping>] [-s <store>] [-show] [-ss]
+ [-echo <echo>] [-fn <findNode>] [-fv <findValue>] [-g <generate>] [-lrt] [-lsb] [-ltb] [-p <ping>] [-s <store>] [-sAll] [-show] [-ss]

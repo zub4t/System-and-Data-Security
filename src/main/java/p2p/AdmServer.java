@@ -1,6 +1,5 @@
 package p2p;
 
-
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -18,15 +17,8 @@ import blockchain.Miner;
 import org.apache.commons.cli.*;
 import util.Util;
 
-/**
- * @author Crunchify.com
- * Java NIO (Non-blocking I/O) with Server-Client Example - java.nio.ByteBuffer and channels.Selector
- * This is CrunchifyNIOServer.java
- */
-
 public class AdmServer {
     private Peer p;
-
 
     AdmServer(Peer p) {
 
@@ -44,13 +36,19 @@ public class AdmServer {
                 .desc("generate a new block").build();
         options.addOption(generate);
 
+        Option generateTeste = Option.builder("generateTeste").longOpt("generateTeste")
+                .argName("generateTeste")
+                .hasArg()
+                .required(false)
+                .desc("generateTeste").build();
+        options.addOption(generateTeste);
+
         Option store = Option.builder("s").longOpt("store")
                 .argName("store")
                 .hasArg()
                 .required(false)
                 .desc("Stores the value in the correct node").build();
         options.addOption(store);
-
 
         Option findValue = Option.builder("fv").longOpt("findValue")
                 .argName("findValue")
@@ -65,14 +63,12 @@ public class AdmServer {
                 .desc("list all know nodes by buckets").build();
         options.addOption(listRoutingTable);
 
-
         Option ping = Option.builder("p").longOpt("ping")
                 .argName("ping")
                 .hasArg()
                 .required(false)
                 .desc("ping a node").build();
         options.addOption(ping);
-
 
         Option findNode = Option.builder("fn").longOpt("findNode")
                 .argName("findNode")
@@ -81,20 +77,11 @@ public class AdmServer {
                 .desc("find a node").build();
         options.addOption(findNode);
 
-
         Option showLocalConfig = Option.builder("show").longOpt("showLocalConfig")
                 .argName("showLocalConfig")
                 .required(false)
                 .desc("show local configuration ").build();
         options.addOption(showLocalConfig);
-
-
-        Option addWellKnowPeer = Option.builder("ap").longOpt("addWellKnowPeer")
-                .argName("addWellKnowPeer")
-                .required(false)
-                .hasArg()
-                .desc("add a peer manually ").build();
-        options.addOption(addWellKnowPeer);
 
         Option listTempBlocks = Option.builder("ltb").longOpt("listTempBlocks")
                 .argName("listTempBlocks")
@@ -114,7 +101,6 @@ public class AdmServer {
                 .desc("set socket for communication").build();
         options.addOption(setSocket);
 
-
         Option echo = Option.builder("echo").longOpt("echo")
                 .argName("echo")
                 .required(false)
@@ -122,76 +108,54 @@ public class AdmServer {
                 .desc("echo ").build();
         options.addOption(echo);
 
+        Option storeAll = Option.builder("sAll").longOpt("storeAll")
+                .argName("storeAll")
+                .required(false)
+                .desc("set temporary blocks").build();
+        options.addOption(storeAll);
 
         CommandLine cmd;
         CommandLineParser parser = new BasicParser();
         HelpFormatter helper = new HelpFormatter();
 
+        Selector selector = Selector.open();
 
-        // Selector: A multiplexor of SelectableChannel objects.
-        // A selector may be created by invoking the open method of this class, which will use the system's default selector provider to create a new selector.
-        // A selector may also be created by invoking the openSelector method of a custom selector provider. A selector remains open until it is closed via its close method.
-        Selector selector = Selector.open(); // selector is open here
-
-        // ServerSocketChannel: A selectable channel for stream-oriented listening sockets.
-        // A server-socket channel is created by invoking the open method of this class.
-        // It is not possible to create a channel for an arbitrary, pre-existing ServerSocket.
         ServerSocketChannel crunchifySocket = ServerSocketChannel.open();
 
-        // InetSocketAddress: This class implements an IP Socket Address (IP address + port number) It can also be a pair (hostname + port number),
-        // in which case an attempt will be made to resolve the hostname.
-        // If resolution fails then the address is said to be unresolved but can still be used on some circumstances like connecting through a proxy.
         InetSocketAddress crunchifyAddr = new InetSocketAddress("localhost", Util.getRandomNumber(2000, 65535));
         System.out.println(crunchifyAddr);
-        // Binds the channel's socket to a local address and configures the socket to listen for connections
         crunchifySocket.bind(crunchifyAddr);
 
-        // Adjusts this channel's blocking mode.
         crunchifySocket.configureBlocking(false);
 
         int ops = crunchifySocket.validOps();
 
-        // SelectionKey: A token representing the registration of a SelectableChannel with a Selector.
-        // A selection key is created each time a channel is registered with a selector.
-        // A key remains valid until it is cancelled by invoking its cancel method, by closing its channel, or by closing its selector.
         SelectionKey selectKy = crunchifySocket.register(selector, ops, null);
 
-        // Infinite loop..
-        // Keep server running
         log("I'm a server and I'm waiting for new connection and buffer select...");
 
         while (true) {
 
-            // Selects a set of keys whose corresponding channels are ready for I/O operations
             selector.select();
 
-            // token representing the registration of a SelectableChannel with a Selector
             Set<SelectionKey> selectedKeys = selector.selectedKeys();
             Iterator<SelectionKey> iterator = selectedKeys.iterator();
 
             while (iterator.hasNext()) {
                 SelectionKey myKey = iterator.next();
 
-                // Tests whether this key's channel is ready to accept a new socket connection
                 if (myKey.isAcceptable()) {
                     SocketChannel socketChannel = crunchifySocket.accept();
 
-                    // Adjusts this channel's blocking mode to false
                     socketChannel.configureBlocking(false);
 
-                    // Operation-set bit for read operations
                     socketChannel.register(selector, SelectionKey.OP_READ);
                     log("Connection Accepted: " + socketChannel.getLocalAddress() + "\n");
 
-                    // Tests whether this key's channel is ready for reading
                 } else if (myKey.isReadable()) {
 
                     SocketChannel socketChannel = (SocketChannel) myKey.channel();
 
-                    // ByteBuffer: A byte buffer.
-                    // This class defines six categories of operations upon byte buffers:
-                    // Absolute and relative get and put methods that read and write single bytes;
-                    // Absolute and relative bulk get methods that transfer contiguous sequences of bytes from this buffer into an array;
                     ByteBuffer crunchifyBuffer = ByteBuffer.allocate(256);
                     socketChannel.read(crunchifyBuffer);
                     String rawInput = new String(crunchifyBuffer.array()).trim();
@@ -223,16 +187,17 @@ public class AdmServer {
 
                         if (cmd.hasOption("g")) {
                             String value = cmd.getOptionValue("generate");
-                            Block b = Miner.mineBlock(0, Block.builder()
+                            Block b = Miner.mineBlock(2, Block.builder()
                                     .data(value)
                                     .previousHash("")
                                     .timeStamp(System.currentTimeMillis())
                                     .build());
                             p.tempStorage.put(b.key, b);
-                            socketChannel.write(ByteBuffer.wrap("new key generated \n".getBytes(StandardCharsets.UTF_8)));
-                            socketChannel.write(ByteBuffer.wrap(b.key.getKey().toString(16).getBytes(StandardCharsets.UTF_8)));
+                            socketChannel
+                                    .write(ByteBuffer.wrap("new key generated \n".getBytes(StandardCharsets.UTF_8)));
+                            socketChannel.write(
+                                    ByteBuffer.wrap(b.key.getKey().toString(16).getBytes(StandardCharsets.UTF_8)));
                         }
-
 
                         if (cmd.hasOption("fn")) {
                             String value = cmd.getOptionValue("findNode");
@@ -251,13 +216,6 @@ public class AdmServer {
 
                         }
 
-                        if (cmd.hasOption("ap")) {
-                            System.out.println("AP");
-                            String value = cmd.getOptionValue("addWellKnowPeer");
-                            System.out.println(value);
-                            p.addWellKnowPeer(value.split(":")[0], value.split(":")[1], Integer.parseInt(value.split(":")[2]));
-
-                        }
                         if (cmd.hasOption("ltb")) {
                             socketChannel.write(ByteBuffer.wrap(p.listTempBlocks().getBytes(StandardCharsets.UTF_8)));
                         }
@@ -269,16 +227,41 @@ public class AdmServer {
                             Peer.socketChannel = socketChannel;
 
                         }
-
                         if (cmd.hasOption("echo")) {
                             String value = cmd.getOptionValue("echo");
                             if (Peer.socketChannel == null) {
-                                socketChannel.write(ByteBuffer.wrap("NO SocketChannel associated ".getBytes(StandardCharsets.UTF_8)));
+                                socketChannel.write(ByteBuffer
+                                        .wrap("NO SocketChannel associated ".getBytes(StandardCharsets.UTF_8)));
 
-                            }else{
+                            } else {
                                 Peer.socketChannel.write(ByteBuffer.wrap(value.getBytes(StandardCharsets.UTF_8)));
 
                             }
+                        }
+                        if (cmd.hasOption("generateTeste")) {
+                            String value = cmd.getOptionValue("generateTeste");
+                            for (int i = 0; i < Integer.parseInt(value); i++) {
+                                Block b = Miner.mineBlock(2, Block.builder()
+                                        .data(i + "")
+                                        .previousHash("")
+                                        .timeStamp(System.currentTimeMillis())
+                                        .build());
+                                p.tempStorage.put(b.key, b);
+                            }
+
+                            socketChannel.write(ByteBuffer
+                                    .wrap("done".getBytes(StandardCharsets.UTF_8)));
+
+                        }
+                        if (cmd.hasOption("sAll")) {
+
+                            for (Map.Entry<Key, Block> entry : p.tempStorage.entrySet()) {
+                                p.store(entry.getValue());
+
+                            }
+                            p.tempStorage.clear();
+                            socketChannel.write(ByteBuffer.wrap("Done".getBytes(StandardCharsets.UTF_8)));
+
                         }
 
                     } catch (Exception e) {
@@ -296,7 +279,6 @@ public class AdmServer {
                             bc = in.read();
                         }
 
-
                         socketChannel.write(ByteBuffer.wrap(h.getBytes(StandardCharsets.UTF_8)));
 
                     }
@@ -307,7 +289,6 @@ public class AdmServer {
             }
         }
     }
-
 
     private static void log(String str) {
 

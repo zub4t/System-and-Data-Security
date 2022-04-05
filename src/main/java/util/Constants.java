@@ -2,6 +2,7 @@ package util;
 
 public class Constants {
     public static final byte PING = 0x00;
+    public static final byte SHOW = 0x01;
     public static final byte FIND_NODE = 0x02;
     public static final byte FIND_VALUE = 0x04;
     public static final byte STORE = 0x08;

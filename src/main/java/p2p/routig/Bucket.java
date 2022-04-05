@@ -8,16 +8,16 @@ import p2p.protocol.KademliaMessage;
 import util.Constants;
 import util.Util;
 
+import java.io.UnsupportedEncodingException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.TreeSet;
 
-/**
- * Created by Christoph on 22.09.2016.
- */
 @Data
 public class Bucket {
     private final int bucketId;
 
-    private final TreeSet<Node> nodes;
+    final TreeSet<Node> nodes;
     private final int k;
     private final CommunicationInterface communicationInterface;
 
@@ -29,7 +29,17 @@ public class Bucket {
         this.nodes = new TreeSet<>();
     }
 
-    public void addNode(Node node) {
+    public String calculate() {
+        String hashValue = "";
+        for (Node node : nodes) {
+            hashValue += node.getId();
+        }
+
+        return hashValue;
+    }
+
+    public void addNode(Node node, String hash[]) {
+        hash[0] = calculate();
         if (nodes.size() < k) {
             if (!nodes.contains(node)) {
                 node.setLastSeen(System.currentTimeMillis());
@@ -37,33 +47,33 @@ public class Bucket {
             } else {
                 System.out.println("This node is already in the bucket");
             }
+
+            synchronized (RoutingTable.padlock) {
+                hash[1] = calculate();
+                RoutingTable.padlock.notify();
+            }
         } else {
             Node last = nodes.last();
-            try {
-                KademliaMessage msg = KademliaMessage.builder().type(Constants.PING)
-                        .localNode(Util.serializeNode(last))
-                        .build();
-                communicationInterface.send(last, msg);
-                new Thread(() -> {
-                    try {
+            KademliaMessage msg = KademliaMessage.builder().type(Constants.PING)
+                    .localNode(Util.serializeNode(last))
+                    .build();
+            communicationInterface.send(last, msg);
+            new Thread(() -> {
+                try {
+                    synchronized (RoutingTable.padlock) {
                         Thread.sleep(500);
-                        if (Peer.callers.get(node.getId()) != null) {
+                        if (Peer.callers.get(last.getId()) == null) {
                             nodes.remove(last);
-                            node.setLastSeen(System.currentTimeMillis());
                             nodes.add(node);
                         }
-
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        hash[1] = calculate();
+                        RoutingTable.padlock.notify();
                     }
-                }).start();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }).start();
 
-
-            } catch (Exception e) {
-                nodes.remove(last);
-                nodes.add(node);
-                return;
-            }
         }
     }
 
@@ -74,7 +84,8 @@ public class Bucket {
     }
 
     public void refreshBucket() {
-        @SuppressWarnings("unchecked") TreeSet<Node> copySet = new TreeSet(nodes);
+        @SuppressWarnings("unchecked")
+        TreeSet<Node> copySet = new TreeSet(nodes);
         // Check nodes on reachability and update
         copySet.stream().forEach(node -> {
             try {
@@ -82,7 +93,7 @@ public class Bucket {
                         .localNode(Util.serializeNode(node))
                         .build();
                 communicationInterface.send(node, msg);
-                //todo handle case where the node pinged can't be reached
+                // todo handle case where the node pinged can't be reached
 
                 nodes.remove(node);
                 node.setLastSeen(System.currentTimeMillis());
