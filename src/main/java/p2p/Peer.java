@@ -29,6 +29,8 @@ public class Peer {
     public static SocketChannel socketChannel = null;
     public HashMap<Key, Block> tempStorage = new HashMap<>();
     public CommunicationInterface communicationInterface;
+    public Node lastSearchedNode;
+    public Block lastSearchedBlock;
 
     Peer(Node localNode) {
         this.localNode = localNode;
@@ -305,6 +307,8 @@ public class Peer {
                                     block.toString()).getBytes(StandardCharsets.UTF_8)));
 
                         }
+                        lastSearchedBlock = Util.deserializeBlock(message.getContent());
+
                         break;
                     case FIND_NODE_REPLY:
                         rn = Util.deserializeNode(message.getLocalNode());
@@ -312,6 +316,8 @@ public class Peer {
                             socketChannel.write(ByteBuffer
                                     .wrap(("Found \n" + rn.toString()).getBytes(StandardCharsets.UTF_8)));
                         }
+                        lastSearchedNode = Util.deserializeNode(message.getContent());
+
                         break;
                     case PING_REPLY:
 

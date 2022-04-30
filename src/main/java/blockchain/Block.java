@@ -18,7 +18,6 @@ import java.util.logging.Logger;
 public class Block implements Serializable {
 
     private static Logger logger = Logger.getLogger(Block.class.getName());
-
     private String hash = new String("");
     public Key key;
     private String previousHash;

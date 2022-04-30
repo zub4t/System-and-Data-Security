@@ -19,6 +19,7 @@ import util.Util;
 
 public class AdmServer {
     private Peer p;
+    private SocketChannel sc;
 
     AdmServer(Peer p) {
 
@@ -105,14 +106,32 @@ public class AdmServer {
                 .argName("echo")
                 .required(false)
                 .hasArg()
-                .desc("echo ").build();
+                .desc("echo ")
+                .build();
         options.addOption(echo);
 
         Option storeAll = Option.builder("sAll").longOpt("storeAll")
                 .argName("storeAll")
                 .required(false)
-                .desc("set temporary blocks").build();
+                .desc("set temporary blocks")
+                .build();
         options.addOption(storeAll);
+
+        Option connect = Option.builder("connect").longOpt("connect")
+                .required(false)
+                .argName("connect")
+                .hasArg()
+                .desc("connect to a web auction")
+                .build();
+        options.addOption(connect);
+
+        Option sell = Option.builder("sell").longOpt("sell")
+                .required(false)
+                .argName("sell")
+                .hasArg()
+                .desc("sell an item")
+                .build();
+        options.addOption(sell);
 
         CommandLine cmd;
         CommandLineParser parser = new BasicParser();
@@ -166,9 +185,7 @@ public class AdmServer {
                         System.out.println(cmd.hasOption("lrt"));
                         if (cmd.hasOption("lrt")) {
                             socketChannel.write(ByteBuffer.wrap(p.listRoutingTable().getBytes(StandardCharsets.UTF_8)));
-                        }
-
-                        if (cmd.hasOption("s")) {
+                        } else if (cmd.hasOption("s")) {
                             String value = cmd.getOptionValue("store");
                             if (p.tempStorage.get(Key.build(value)) != null) {
                                 p.store(p.tempStorage.get(Key.build(value)));
@@ -178,15 +195,13 @@ public class AdmServer {
                                 socketChannel.write(ByteBuffer.wrap(r.getBytes(StandardCharsets.UTF_8)));
 
                             }
-                        }
-
-                        if (cmd.hasOption("fv")) {
+                        } else if (cmd.hasOption("fv")) {
                             String value = cmd.getOptionValue("findValue");
                             p.findValue(Key.build(value));
-                        }
-
-                        if (cmd.hasOption("g")) {
+                        } else if (cmd.hasOption("g")) {
                             String value = cmd.getOptionValue("generate");
+                            System.out.println("meu valor é");
+                            System.out.println(value);
                             Block b = Miner.mineBlock(2, Block.builder()
                                     .data(value)
                                     .previousHash("")
@@ -197,37 +212,27 @@ public class AdmServer {
                                     .write(ByteBuffer.wrap("new key generated \n".getBytes(StandardCharsets.UTF_8)));
                             socketChannel.write(
                                     ByteBuffer.wrap(b.key.getKey().toString(16).getBytes(StandardCharsets.UTF_8)));
-                        }
-
-                        if (cmd.hasOption("fn")) {
+                        } else if (cmd.hasOption("fn")) {
                             String value = cmd.getOptionValue("findNode");
                             p.findNode(Key.build(value));
-                        }
-
-                        if (cmd.hasOption("showLocalConfig")) {
+                        } else if (cmd.hasOption("showLocalConfig")) {
                             String value = cmd.getOptionValue("showLocalConfig");
                             String r = ("config -> " + p.localNode);
                             socketChannel.write(ByteBuffer.wrap(r.getBytes(StandardCharsets.UTF_8)));
-                        }
-                        if (cmd.hasOption("ping")) {
+                        } else if (cmd.hasOption("ping")) {
                             String value = cmd.getOptionValue("ping");
                             System.out.println(value);
                             p.ping(value.split(":")[0], Integer.parseInt(value.split(":")[1]));
 
-                        }
-
-                        if (cmd.hasOption("ltb")) {
+                        } else if (cmd.hasOption("ltb")) {
                             socketChannel.write(ByteBuffer.wrap(p.listTempBlocks().getBytes(StandardCharsets.UTF_8)));
-                        }
-                        if (cmd.hasOption("lsb")) {
+                        } else if (cmd.hasOption("lsb")) {
                             socketChannel.write(ByteBuffer.wrap(p.listStoredBlocks().getBytes(StandardCharsets.UTF_8)));
 
-                        }
-                        if (cmd.hasOption("ss")) {
+                        } else if (cmd.hasOption("ss")) {
                             Peer.socketChannel = socketChannel;
 
-                        }
-                        if (cmd.hasOption("echo")) {
+                        } else if (cmd.hasOption("echo")) {
                             String value = cmd.getOptionValue("echo");
                             if (Peer.socketChannel == null) {
                                 socketChannel.write(ByteBuffer
@@ -237,8 +242,7 @@ public class AdmServer {
                                 Peer.socketChannel.write(ByteBuffer.wrap(value.getBytes(StandardCharsets.UTF_8)));
 
                             }
-                        }
-                        if (cmd.hasOption("generateTeste")) {
+                        } else if (cmd.hasOption("generateTeste")) {
                             String value = cmd.getOptionValue("generateTeste");
                             for (int i = 0; i < Integer.parseInt(value); i++) {
                                 Block b = Miner.mineBlock(2, Block.builder()
@@ -248,19 +252,39 @@ public class AdmServer {
                                         .build());
                                 p.tempStorage.put(b.key, b);
                             }
-
-                            socketChannel.write(ByteBuffer
-                                    .wrap("done".getBytes(StandardCharsets.UTF_8)));
-
-                        }
-                        if (cmd.hasOption("sAll")) {
-
+                            socketChannel.write(ByteBuffer.wrap("done".getBytes(StandardCharsets.UTF_8)));
+                        } else if (cmd.hasOption("sAll")) {
                             for (Map.Entry<Key, Block> entry : p.tempStorage.entrySet()) {
                                 p.store(entry.getValue());
-
                             }
                             p.tempStorage.clear();
                             socketChannel.write(ByteBuffer.wrap("Done".getBytes(StandardCharsets.UTF_8)));
+
+                        } else if (cmd.hasOption("connect")) {
+                            String value = cmd.getOptionValue("connect");
+                            sc = SocketChannel.open();
+                            sc.connect(
+                                    new InetSocketAddress(value.split(":")[0], Integer.parseInt(
+                                            value.split(":")[1])));
+                        } else if (cmd.hasOption("sell")) {
+                            String value = cmd.getOptionValue("sell");
+                            p.findValue(Key.build(value));
+                            if (p.lastSearchedBlock.getData().charAt(0) != 'I') {
+                                socketChannel.write(ByteBuffer.wrap(
+                                        "This block does not represent an item and is therefore not eligible for auction."
+                                                .getBytes(StandardCharsets.UTF_8)));
+                                return;
+                            }
+                            if (sc.isConnected()) {
+                                socketChannel.write(ByteBuffer.wrap(("Advertise block with id  " + value
+                                        + " for sale").getBytes(StandardCharsets.UTF_8)));
+                                sc.write(ByteBuffer.wrap(p.lastSearchedBlock.getData().getBytes()));
+
+                            } else {
+                                socketChannel.write(ByteBuffer.wrap("The app is not connected to any web auction"
+                                        .getBytes(StandardCharsets.UTF_8)));
+
+                            }
 
                         }
 
