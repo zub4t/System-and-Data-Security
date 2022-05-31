@@ -7,10 +7,6 @@ import p2p.communication.CommunicationInterface;
 import p2p.protocol.KademliaMessage;
 import util.Constants;
 import util.Util;
-
-import java.io.UnsupportedEncodingException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.TreeSet;
 
 @Data

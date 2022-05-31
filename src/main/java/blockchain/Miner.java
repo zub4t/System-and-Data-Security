@@ -1,26 +1,60 @@
 package blockchain;
 
 import p2p.Key;
+import util.Util;
 
 public class Miner {
+  public static long nonce;
 
-    public static long nonce;
+  public static Block mineBlock(
+    int prefix,
+    Key to,
+    Key from,
+    Key winner,
+    Item item,
+    String previousHash
+  ) {
+    Block block = Block
+      .builder()
+      .to(to)
+      .from(from)
+      .winner(winner)
+      .item(item)
+      .previousHash(previousHash)
+      .build();
 
-    public static Block mineBlock(int prefix, Block block) {
+    byte[] b;
+    do {
+      b = Block.calculateBlockHash(block, nonce);
+      block.key = new Key(b);
+      block.setHash(new String(b));
+      nonce++;
+    } while (
+      !(
+        block.getHash().charAt(0) == '0' &&
+        Util.allCharactersSame(block.getHash().substring(0, prefix))
+      )
+    );
 
-        byte[] b;
-        String prefixString = new String(new char[prefix]).replace('\0', '0');
-      //  do {
-            b = Block.calculateBlockHash(block, nonce);
-            nonce++;
+    return block;
+  }
 
-      //  } while (!block.getHash().substring(0, 2).equals(prefixString));
-        byte[] b_aux = new byte[Key.ID_LENGTH / 8];
-        for (int i = 0; i < Key.ID_LENGTH / 8; i++) {
-            b_aux[i] = b[i];
-        }
-        block.key = new Key(b_aux);
-        block.setHash(b.toString());
-        return block;
-    }
+  public static void main(String[] args) {
+    Block b = Miner.mineBlock(
+      2,
+      Key.random(),
+      Key.random(),
+      Key.random(),
+      Item
+        .builder()
+        .title("teste")
+        .price(0)
+        .description("description")
+        .duration(0)
+        .build(),
+      ""
+    );
+
+    System.out.println(b.getHash());
+  }
 }

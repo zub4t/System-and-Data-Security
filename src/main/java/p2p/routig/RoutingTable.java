@@ -69,17 +69,17 @@ public class RoutingTable {
 
             }).start();
             synchronized (RoutingTable.padlock) {
-                System.out.println("AGUARDADO");
+                peer.log("AGUARDADO");
                 try {
                     padlock.wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                System.out.println("ACABO A ESPERA");
-                System.out.println("OLD " + hash[0]);
-                System.out.println("NEW " + hash[1]);
+                peer.log("ACABO A ESPERA");
+                peer.log("OLD " + hash[0]);
+                peer.log("NEW " + hash[1]);
                 if (!hash[1].equals(hash[0])) {
-                    System.out.println("FOI ADICIONADO");
+                    peer.log("FOI ADICIONADO");
 
                     KademliaMessage msg = KademliaMessage.builder().build();
                     long seqNumber = new Random().nextLong();
@@ -95,7 +95,7 @@ public class RoutingTable {
                         }
                     }
 
-                    System.out.println("UM CARA ADICIONADO");
+                    peer.log("UM CARA ADICIONADO");
                     HashMap<Key, Block> storageC = new HashMap<Key, Block>();
                     for (Map.Entry<Key, Block> entry : peer.storage.entrySet()) {
                         storageC.put(entry.getKey(), entry.getValue());
@@ -104,7 +104,7 @@ public class RoutingTable {
                     peer.storage.clear();
                     for (Map.Entry<Key, Block> entry : storageC.entrySet()) {
                         peer.store(entry.getValue());
-                        System.out.println("Recalculando...");
+                        peer.log("Recalculando...");
                     }
 
                 }
@@ -112,7 +112,7 @@ public class RoutingTable {
             }
 
         } else {
-            System.out.println("Routing table of node=" + node.getId() + " can't contain itself. (localNodeId="
+            peer.log("Routing table of node=" + node.getId() + " can't contain itself. (localNodeId="
                     + localNodeId + ")");
         }
     }
