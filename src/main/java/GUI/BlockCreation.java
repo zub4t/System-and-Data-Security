@@ -1,10 +1,12 @@
 package GUI;
 
-import blockchain.Block;
 import blockchain.Item;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.Timestamp;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import javax.swing.*;
 import p2p.Peer;
 
@@ -14,7 +16,7 @@ public class BlockCreation extends JFrame implements ActionListener {
   // declare some things we need
   private JLabel lbl1, lbl2, lbl3, lbl4;
   private JTextField blockTitle, price, duration;
-  private JButton btn1, btn2, btn3;
+  private JButton btn1;
   private JTextArea txtArea1;
   public Peer p;
 
@@ -31,7 +33,7 @@ public class BlockCreation extends JFrame implements ActionListener {
     setSize(400, 450);
     setTitle("Block Creation");
     setVisible(true);
-    setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
   }
 
   public void init() {
@@ -82,7 +84,6 @@ public class BlockCreation extends JFrame implements ActionListener {
     pane.add(btn1);
   }
 
-
   @Override
   public void actionPerformed(ActionEvent e) {
     System.out.println(e.getActionCommand());
@@ -93,13 +94,17 @@ public class BlockCreation extends JFrame implements ActionListener {
         .description(txtArea1.getText())
         .price(Double.parseDouble(price.getText()))
         .duration(Float.parseFloat(duration.getText()))
+        .id(UUID.randomUUID())
+        .creationTime(System.currentTimeMillis())
+        .endTime(
+          new Timestamp(
+            (new Timestamp(System.currentTimeMillis())).getTime() +
+            TimeUnit.MINUTES.toMillis((int) Double.parseDouble(price.getText()))
+          )
+          .getTime()
+        )
         .build();
-      Block block = Block
-        .builder()
-        .item(item)
-        .from(p.localNode.getId())
-        .build();
-      p.tempStorage.add(block);
+      p.toSell.add(item);
       //basic error catching
     } catch (NumberFormatException ex) {
       System.out.println("Exception: " + ex);

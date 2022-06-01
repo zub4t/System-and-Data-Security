@@ -4,6 +4,7 @@ public class Constants {
     public static final byte PING = 0x00;
     public static final byte SHOW = 0x01;
     public static final byte FIND_NODE = 0x02;
+    public static final byte INFECTION = 0x03;
     public static final byte FIND_VALUE = 0x04;
     public static final byte STORE = 0x08;
     public static final byte PING_REPLY = 0x10;

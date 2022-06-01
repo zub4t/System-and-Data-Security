@@ -1,41 +1,47 @@
 package p2p.protocol;
 
+import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import p2p.Node;
 import util.Util;
-
-import java.io.Serializable;
-import java.nio.charset.StandardCharsets;
 
 @Getter
 @Setter
 @Builder(access = AccessLevel.PUBLIC)
 public class KademliaMessage implements Serializable {
+  private byte type;
+  private Long seqNumber;
+  private Node localNode;
+  private byte[] content;
+  private String action;
+  private String actionData;
 
-    private byte type;
-    private byte[] seqNumber = new byte[8];
-    private byte[] localNode = new byte[2048];
-    private byte[] content = new byte[2048];
+  public String getContentAsString() {
+    return new String(this.content, StandardCharsets.UTF_8);
+  }
 
-    public String getContentAsString() {
-        return new String(this.content, StandardCharsets.UTF_8);
+  @Override
+  public String toString() {
+    String s = "";
+    try {
+      s =
+        "KademliaMessage{" +
+        "type=" +
+        type +
+        ", localNode=" +
+        (localNode) +
+        ", seqNumber=" +
+        (seqNumber) +
+        ", content=" +
+        new String(content, StandardCharsets.UTF_8) +
+        '}';
+    } catch (Exception e) {
+      e.printStackTrace();
     }
-
-    @Override
-    public String toString() {
-        String s = "";
-        try {
-            s = "KademliaMessage{" +
-                    "type=" + type +
-                    ", localNode=" + Util.deserializeNode(localNode) +
-                    ", seqNumber=" + Util.bytesToLong(seqNumber) +
-                    ", content=" + new String(content, StandardCharsets.UTF_8) +
-                    '}';
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return s;
-    }
+    return s;
+  }
 }

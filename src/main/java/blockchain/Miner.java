@@ -1,6 +1,7 @@
 package blockchain;
 
 import p2p.Key;
+import p2p.Node;
 import util.Util;
 
 public class Miner {
@@ -22,6 +23,25 @@ public class Miner {
       .item(item)
       .previousHash(previousHash)
       .build();
+
+    byte[] b;
+    do {
+      b = Block.calculateBlockHash(block, nonce);
+      block.key = new Key(b);
+      block.setHash(new String(b));
+      nonce++;
+    } while (
+      !(
+        block.getHash().charAt(0) == '0' &&
+        Util.allCharactersSame(block.getHash().substring(0, prefix))
+      )
+    );
+
+    return block;
+  }
+
+  public static Block mineBlock(int prefix, Block block, Key key) {
+    block.setWinner(key);
 
     byte[] b;
     do {

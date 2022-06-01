@@ -1,5 +1,5 @@
 
-package p2p;
+package p2p.protocol;
 import java.io.Serializable;
 import java.sql.Timestamp;
 

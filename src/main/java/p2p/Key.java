@@ -85,4 +85,14 @@ public class Key implements Serializable {
   public int getDistance(Key to) {
     return ID_LENGTH - this.xor(to).getFirstSetBitIndex();
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof Key)) {
+      return false;
+    } else {
+      Key oo = (Key) o;
+      return oo.key.equals(this.key);
+    }
+  }
 }

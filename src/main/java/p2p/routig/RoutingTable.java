@@ -75,18 +75,18 @@ public class RoutingTable {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                peer.log("ACABO A ESPERA");
-                peer.log("OLD " + hash[0]);
-                peer.log("NEW " + hash[1]);
+                //peer.log("ACABO A ESPERA");
+               // peer.log("OLD " + hash[0]);
+               // peer.log("NEW " + hash[1]);
                 if (!hash[1].equals(hash[0])) {
-                    peer.log("FOI ADICIONADO");
+                    //peer.log("FOI ADICIONADO");
 
                     KademliaMessage msg = KademliaMessage.builder().build();
                     long seqNumber = new Random().nextLong();
                     msg.setType(Constants.PING);
-                    msg.setSeqNumber(Util.longToBytes(seqNumber));
+                    msg.setSeqNumber((seqNumber));
                     msg.setContent("PING".getBytes(StandardCharsets.UTF_8));
-                    msg.setLocalNode(Util.serializeNode(node));
+                    msg.setLocalNode((node));
                     for (Bucket bucket : getBuckets()) {
                         for (Node n : bucket.getNodes()) {
                             if (n.getId() != node.getId()) {
@@ -95,7 +95,7 @@ public class RoutingTable {
                         }
                     }
 
-                    peer.log("UM CARA ADICIONADO");
+                    //peer.log("UM CARA ADICIONADO");
                     HashMap<Key, Block> storageC = new HashMap<Key, Block>();
                     for (Map.Entry<Key, Block> entry : peer.storage.entrySet()) {
                         storageC.put(entry.getKey(), entry.getValue());

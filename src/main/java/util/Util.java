@@ -5,10 +5,10 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
-
-import p2p.InterSystemMessage;
 import p2p.Key;
 import p2p.Node;
+import p2p.protocol.InfectionMessage;
+import p2p.protocol.InterSystemMessage;
 import p2p.protocol.KademliaMessage;
 
 public class Util {
@@ -199,6 +199,32 @@ public class Util {
       ByteArrayInputStream bb = new ByteArrayInputStream(b);
       ObjectInputStream o = new ObjectInputStream(bb);
       InterSystemMessage msg = (InterSystemMessage) o.readObject();
+      return msg;
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return null;
+  }
+
+  public static byte[] serializeInfectionMessage(InfectionMessage msg) {
+    try {
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      ObjectOutputStream out = new ObjectOutputStream(bos);
+      out.writeObject(msg);
+      out.flush();
+      return bos.toByteArray();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+
+    return new byte[0];
+  }
+
+  public static InfectionMessage deserializeInfectionMessage(byte[] b) {
+    try {
+      ByteArrayInputStream bb = new ByteArrayInputStream(b);
+      ObjectInputStream o = new ObjectInputStream(bb);
+      InfectionMessage msg = (InfectionMessage) o.readObject();
       return msg;
     } catch (Exception e) {
       e.printStackTrace();
