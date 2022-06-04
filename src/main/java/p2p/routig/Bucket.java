@@ -2,27 +2,26 @@ package p2p.routig;
 
 import java.util.TreeSet;
 import lombok.Data;
+import p2p.Key;
 import p2p.Node;
 import p2p.Peer;
-import p2p.communication.CommunicationInterface;
-import p2p.protocol.KademliaMessage;
-import util.Constants;
-import util.Util;
 
 @Data
 public class Bucket {
   private final int bucketId;
 
   final TreeSet<Node> nodes;
+  private TreeSet<Node> kowns;
   private final int k;
-  private final CommunicationInterface communicationInterface;
+  private final Peer p;
 
-  public Bucket(CommunicationInterface client, int k, int bucketId) {
+  public Bucket(Peer p, int k, int bucketId) {
     this.k = k;
     this.bucketId = bucketId;
-    this.communicationInterface = client;
+    this.p = p;
 
     this.nodes = new TreeSet<>();
+    this.kowns = new TreeSet<>();
   }
 
   public String calculate() {
@@ -35,45 +34,57 @@ public class Bucket {
   }
 
   public void addNode(Node node, String hash[]) {
-    hash[0] = calculate();
-    if (nodes.size() < k) {
-      if (!nodes.contains(node)) {
-        node.setLastSeen(System.currentTimeMillis());
-        nodes.add(node);
-      } else {
-        System.out.println("This node is already in the bucket");
-      }
+    node.setLastSeen(System.currentTimeMillis());
 
-      synchronized (RoutingTable.padlock) {
-        hash[1] = calculate();
-        RoutingTable.padlock.notify();
-      }
-    } else {
-      Node last = nodes.last();
-      KademliaMessage msg = KademliaMessage
-        .builder()
-        .type(Constants.PING)
-        .localNode((last))
-        .build();
-      communicationInterface.send(last, msg);
-      new Thread(
-        () -> {
-          try {
-            synchronized (RoutingTable.padlock) {
-              Thread.sleep(500);
-              if (Peer.callers.get(last.getId()) == null) {
-                nodes.remove(last);
-                nodes.add(node);
-              }
-              hash[1] = calculate();
-              RoutingTable.padlock.notify();
-            }
-          } catch (InterruptedException e) {
-            e.printStackTrace();
-          }
+    if (true) {
+      kowns.add(node);
+      hash[0] = calculate();
+      if (nodes.size() < k) {
+        if (!nodes.contains(node)) {
+          node.setLastSeen(System.currentTimeMillis());
+          nodes.add(node);
+        } else {
+          // System.out.println("This node is already in the bucket");
         }
-      )
-      .start();
+
+        synchronized (RoutingTable.padlock) {
+          hash[1] = calculate();
+          RoutingTable.padlock.notify();
+        }
+      } else {
+        Node last = nodes.last();
+        if (last != null) {
+          p.ping(last);
+          new Thread(
+            () -> {
+              try {
+                synchronized (RoutingTable.padlock) {
+                  Thread.sleep(1000);
+                  for (Key key : p.callers) {
+                    System.out.println("key " + key);
+                  }
+
+                  if (!p.callers.contains(last.getId())) {
+                    System.out.println("NÂO RESPONDEU ");
+                    nodes.remove(last);
+                    nodes.add(node);
+                  } else {
+                    System.out.println(" RESPONDEU ");
+
+                    last.setLastSeen(System.currentTimeMillis());
+                    p.callers.remove(last.getId());
+                  }
+                  hash[1] = calculate();
+                  RoutingTable.padlock.notify();
+                }
+              } catch (InterruptedException e) {
+                e.printStackTrace();
+              }
+            }
+          )
+          .start();
+        }
+      }
     }
   }
 
@@ -83,30 +94,5 @@ public class Bucket {
     return set;
   }
 
-  public void refreshBucket() {
-    @SuppressWarnings("unchecked")
-    TreeSet<Node> copySet = new TreeSet(nodes);
-    // Check nodes on reachability and update
-    copySet
-      .stream()
-      .forEach(
-        node -> {
-          try {
-            KademliaMessage msg = KademliaMessage
-              .builder()
-              .type(Constants.PING)
-              .localNode((node))
-              .build();
-            communicationInterface.send(node, msg);
-            // todo handle case where the node pinged can't be reached
-
-            nodes.remove(node);
-            node.setLastSeen(System.currentTimeMillis());
-            nodes.add(node);
-          } catch (Exception exp) {
-            nodes.remove(node);
-          }
-        }
-      );
-  }
+  
 }

@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(of = "key")
-public class Key implements Serializable {
+public class Key implements Serializable, Comparable<Key> {
   public static final int ID_LENGTH = 160;
   private BigInteger key;
 
@@ -87,12 +87,7 @@ public class Key implements Serializable {
   }
 
   @Override
-  public boolean equals(Object o) {
-    if (!(o instanceof Key)) {
-      return false;
-    } else {
-      Key oo = (Key) o;
-      return oo.key.equals(this.key);
-    }
+  public int compareTo(Key o) {
+    return this.getKey().compareTo(o.getKey());
   }
 }

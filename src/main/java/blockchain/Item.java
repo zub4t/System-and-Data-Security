@@ -12,6 +12,7 @@ import p2p.Key;
 @Setter
 public class Item implements Serializable, Comparable<Item> {
   private String title;
+  private String tag;
   private String description;
   private float duration;
   private double price;
@@ -23,21 +24,14 @@ public class Item implements Serializable, Comparable<Item> {
 
   @Override
   public String toString() {
-    return (
-      "|" +
-      title +
-      "//" +
-      description +
-      "//" +
-      duration +
-      "//" +
-      price +
-      "//" +
-      alreadyAdvertised +
-      "//" +
-      id.toString() +
-      "|"
-    );
+    String str = "*****************************\n";
+    str += "Title:\t" + title + "\n";
+    str += "Description:\t" + description + "\n";
+    str += "Duration:\t" + duration + "\n";
+    str += "Price:\t" + price + " BitCona\n";
+    str += "Already Advertised:\t" + alreadyAdvertised + "\n";
+    str += "*****************************\n";
+    return str;
   }
 
   @Override

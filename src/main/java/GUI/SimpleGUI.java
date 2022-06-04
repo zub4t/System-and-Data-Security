@@ -1,20 +1,26 @@
 package GUI;
 
-import blockchain.Block;
+import blockchain.InBlock;
 import blockchain.Item;
+import blockchain.OutBlock;
 import java.awt.*;
+import java.awt.Dialog.ModalityType;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.TreeSet;
 import java.util.UUID;
 import javax.swing.*;
 import p2p.Key;
 import p2p.Peer;
 import p2p.protocol.InfectionMessage;
+import util.Util;
 
 public class SimpleGUI extends JFrame implements ActionListener {
   private static final long serialVersionUID = 1L;
@@ -22,12 +28,22 @@ public class SimpleGUI extends JFrame implements ActionListener {
   // declare some things we need
   private JLabel introLbl, lbl1, lbl2, lbl3;
   private JTextField txtfld1, txtfld2, txtfld3;
-  private JButton btn1, btn2, btn3, btn4, btn5, btn6, btn7, btn8, btn9, btn10, btn11;
+  private JButton btn0, btn1, btn2, btn3, btn4, btn5, btn6, btn7, btn8, btn9, btn10, btn11;
   private JTextArea txtArea1, txtArea2, txtArea3, txtArea4;
   public Peer p;
+  public Boolean action;
 
   public SimpleGUI(Peer p) {
     this.p = p;
+    action = true;
+  }
+
+  public void disableAction() {
+    action = false;
+  }
+
+  public void enableActions() {
+    action = false;
   }
 
   public void start() {
@@ -70,6 +86,10 @@ public class SimpleGUI extends JFrame implements ActionListener {
     lbl3.setBounds(10, 90, 80, 20);
     txtfld3 = new JTextField();
     txtfld3.setBounds(70, 90, 100, 20);
+
+    btn0 = new JButton("List my chain view");
+    btn0.setBounds(10, 170, 200, 20);
+    btn0.addActionListener(this);
 
     // generate button
     btn1 = new JButton("List Routing Table");
@@ -146,6 +166,7 @@ public class SimpleGUI extends JFrame implements ActionListener {
     pane.add(txtfld1);
     pane.add(txtfld2);
     pane.add(txtfld3);
+    pane.add(btn0);
     pane.add(btn1);
     pane.add(btn2);
     pane.add(btn3);
@@ -163,14 +184,142 @@ public class SimpleGUI extends JFrame implements ActionListener {
     pane.add(scroll3);
   }
 
-  //handles action and all the things ^_^
-
   @Override
   public void actionPerformed(ActionEvent e) {
-    System.out.println(e.getActionCommand());
+    SwingWorker<Void, Void> mySwingWorker = new SwingWorker<Void, Void>() {
+
+      @Override
+      protected Void doInBackground() throws Exception {
+        if (action) handleEvent(e.getActionCommand());
+        return null;
+      }
+    };
+
+    Window win = SwingUtilities.getWindowAncestor(
+      (AbstractButton) e.getSource()
+    );
+    final JDialog dialog = new JDialog(
+      win,
+      "Mining Block",
+      ModalityType.APPLICATION_MODAL
+    );
+
+    mySwingWorker.addPropertyChangeListener(
+      new PropertyChangeListener() {
+
+        @Override
+        public void propertyChange(PropertyChangeEvent e) {
+          if (e.getPropertyName().equals("state")) {
+            if (e.getNewValue() == SwingWorker.StateValue.DONE) {
+              dialog.dispose();
+            }
+          }
+        }
+      }
+    );
+
+    mySwingWorker.execute();
+
+    JProgressBar progressBar = new JProgressBar();
+    progressBar.setIndeterminate(true);
+    JPanel panel = new JPanel(new BorderLayout());
+    panel.add(progressBar, BorderLayout.CENTER);
+    panel.add(new JLabel("Please wait......."), BorderLayout.PAGE_START);
+    dialog.add(panel);
+    dialog.pack();
+    dialog.setLocationRelativeTo(win);
+    dialog.setVisible(true);
+  }
+
+  public void log(String txt) {
+    if (txtArea3 != null) txtArea3.setText(
+      txtArea3.getText() + "\n" + txt
+    ); else System.out.println("TtxtArea3 NULL");
+  }
+
+  public void alert(String txt) {
+    JOptionPane.showMessageDialog(this, txt);
+  }
+
+  class Task1 extends TimerTask {
+
+    public void run() {
+      txtArea2.setText(p.listInternalInterest());
+      txtArea4.setText(p.listFormatedInterests());
+      java.util.List<Item> toRemove = new ArrayList<>();
+      for (Item item : p.toSell) {
+        if (
+          new Timestamp(item.getEndTime())
+          .before(new Timestamp(System.currentTimeMillis()))
+        ) {
+          toRemove.add(item);
+          System.out.println(
+            "********************ANUNCIANDO********************"
+          );
+          OutBlock lstBlock = (OutBlock) p.getPreviousHash();
+          InBlock inBlock = InBlock
+            .builder()
+            .to(item.getLastBider())
+            .from(p.localNode.getId())
+            .content(Util.convertObjectToBytes(item))
+            .contentType("Item:Sell of an item")
+            .previousHash(lstBlock.getHash())
+            .timeStamp(System.currentTimeMillis())
+            .build();
+
+          InfectionMessage msg = InfectionMessage
+            .builder()
+            .OPERANTION("blockGeneration")
+            .seqNumber(new Random().nextLong())
+            .block(inBlock)
+            .alreadySent(new TreeSet<>())
+            .build();
+          p.infection(msg);
+          p.generateOutBlock(inBlock);
+          p.electionFinishAndPublishedWinner = false;
+
+          alert(
+            "An auction has ended. A block generation run is taking place, please wait"
+          );
+          while (!p.electionFinishAndPublishedWinner) {
+            try {
+              Thread.sleep(1000);
+            } catch (InterruptedException e) {
+              e.printStackTrace();
+            }
+          }
+
+          alert("Finished");
+        }
+      }
+
+      p.toSell.removeAll(toRemove);
+    }
+  }
+
+  private void handleEvent(String action) {
+    SimpleGUI that = this;
+    OutBlock lstBlock = null;
+
+    do {
+      lstBlock = (OutBlock) p.getPreviousHash();
+      System.out.println("pedido");
+      if (lstBlock != null) break;
+      try {
+        Thread.sleep(2000);
+      } catch (InterruptedException e1) {
+        e1.printStackTrace();
+      }
+    } while (lstBlock == null);
+
     try {
       InfectionMessage msg;
-      switch (e.getActionCommand()) {
+      InBlock inBlock;
+      switch (action) {
+        case "List my chain view":
+          txtArea1.setText(p.listChain());
+
+          break;
         case "List Local Stored Block":
           txtArea1.setText(p.listStoredBlocks());
           break;
@@ -178,17 +327,49 @@ public class SimpleGUI extends JFrame implements ActionListener {
           try {
             UUID id = UUID.fromString(txtfld1.getText());
             Key key = p.findOwnerOf(id);
+
             if (key != null) {
               p.findNode(key, "BID", id.toString());
+
+              //Generating IN block to advertise
+              inBlock =
+                InBlock
+                  .builder()
+                  .from(p.localNode.getId())
+                  .to(key)
+                  .content(
+                    Util.convertObjectToBytes(
+                      "BID for the item with UUID " + id
+                    )
+                  )
+                  .timeStamp(System.currentTimeMillis())
+                  .contentType("BID")
+                  .previousHash(lstBlock.getHash())
+                  .build();
+
+              inBlock.setDigitalSignature(p.sing((inBlock)));
+              /**------------------------------------ */
+              // Allow that every node tries to win the run for this block
+              msg =
+                InfectionMessage
+                  .builder()
+                  .OPERANTION("blockGeneration")
+                  .block(inBlock)
+                  .alreadySent(new TreeSet<>())
+                  .seqNumber(new Random().nextLong())
+                  .build();
+              p.infection(msg);
+              p.generateOutBlock(inBlock);
+              p.electionFinishAndPublishedWinner = false;
+              while (!p.electionFinishAndPublishedWinner) {
+                Thread.sleep(1000);
+              }
             } else {
-              JOptionPane.showMessageDialog(
-                this,
-                "There is no item known with this UUID"
-              );
+              alert("There is no item known with this UUID");
             }
           } catch (IllegalArgumentException ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Invalid UUID");
+            alert("Invalid UUID");
           }
 
           break;
@@ -196,7 +377,7 @@ public class SimpleGUI extends JFrame implements ActionListener {
           txtArea1.setText(p.listRoutingTable());
           break;
         case "Block Creation":
-          BlockCreation blockCreation = new BlockCreation(this.p);
+          BlockCreation blockCreation = new BlockCreation(that.p);
           blockCreation.start();
           break;
         case "List To Sell Items":
@@ -209,6 +390,8 @@ public class SimpleGUI extends JFrame implements ActionListener {
               toSell.add(
                 item.getId().toString() +
                 ":" +
+                item.getTag() +
+                ":" +
                 item.getTitle() +
                 ":" +
                 item.getDescription() +
@@ -218,14 +401,50 @@ public class SimpleGUI extends JFrame implements ActionListener {
               item.setAlreadyAdvertised(true);
             }
           }
+          //advertising the item
           msg =
             InfectionMessage
               .builder()
               .toSell(toSell)
+              .OPERANTION("toSell")
+              .alreadySent(new TreeSet<>())
               .seqNumber(new Random().nextLong())
               .build();
           p.infection(msg);
+          //generating block for this advertisement
+          /**------------------------------------ */
+          //Generating IN block to advertise
+          inBlock =
+            InBlock
+              .builder()
+              .from(p.localNode.getId())
+              .content(Util.convertObjectToBytes(msg))
+              .timeStamp(System.currentTimeMillis())
+              .contentType("InfectionMessage toSell")
+              .previousHash(lstBlock.getHash())
+              .build();
 
+          inBlock.setDigitalSignature(p.sing((inBlock)));
+          /**------------------------------------ */
+          // Allow that every node tries to win the run for this block
+          msg =
+            InfectionMessage
+              .builder()
+              .OPERANTION("blockGeneration")
+              .block(inBlock)
+              .alreadySent(new TreeSet<>())
+              .seqNumber(new Random().nextLong())
+              .build();
+          p.infection(msg);
+          p.generateOutBlock(inBlock);
+          p.electionFinishAndPublishedWinner = false;
+
+          while (!p.electionFinishAndPublishedWinner) {
+            System.out.println(
+              "AQUI esperando  " + p.electionFinishAndPublishedWinner
+            );
+            Thread.sleep(1000);
+          }
           break;
         case "List Intersection Int":
           txtArea1.setText(p.listIntersectionInterests());
@@ -242,71 +461,58 @@ public class SimpleGUI extends JFrame implements ActionListener {
             toBuy.add(str);
             p.internalInterests.add(str);
           }
-
           msg =
             InfectionMessage
               .builder()
               .toBuy(toBuy)
+              .OPERANTION("toBuy")
+              .alreadySent(new TreeSet<>())
               .seqNumber(new Random().nextLong())
               .build();
           p.infection(msg);
 
+          //generating block for this advertisement
+          /**------------------------------------ */
+          //Generating IN block to advertise
+          inBlock =
+            InBlock
+              .builder()
+              .from(p.localNode.getId())
+              .content(Util.convertObjectToBytes(msg))
+              .timeStamp(System.currentTimeMillis())
+              .contentType("InfectionMessage toBuy")
+              .previousHash(lstBlock.getHash())
+              .build();
+          byte[] ss = p.sing((inBlock));
+          System.out.println("MINHA ASSINATURA " + ss);
+          inBlock.setDigitalSignature(ss);
+          /**------------------------------------ */
+          // Allow that every node tries to win the run for this block
+          msg =
+            InfectionMessage
+              .builder()
+              .OPERANTION("blockGeneration")
+              .block(inBlock)
+              .alreadySent(new TreeSet<>())
+              .seqNumber(new Random().nextLong())
+              .build();
+
+          p.infection(msg);
+          //Try myself
+          p.generateOutBlock(inBlock);
+          p.electionFinishAndPublishedWinner = false;
+
+          while (!p.electionFinishAndPublishedWinner) {
+            Thread.sleep(1000);
+          }
           break;
       }
       //basic error catching
     } catch (NumberFormatException ex) {
       System.out.println("Exception: " + ex);
-      JOptionPane.showMessageDialog(this, "Please enter a warning message");
-    } catch (ArrayIndexOutOfBoundsException ex) {
-      //warnings..
-    } catch (NegativeArraySizeException ex) {
-      //warnings..
-    }
-  }
-
-  public void log(String txt) {
-    txtArea3.setText(txtArea3.getText() + "\n" + txt);
-  }
-
-  class Task1 extends TimerTask {
-
-    public void run() {
-      txtArea2.setText(p.listInternalInterest());
-      txtArea4.setText(p.listFormatedInterests());
-      java.util.List<Item> toRemove = new ArrayList<>();
-      for (Item item : p.toSell) {
-        if (
-          new Timestamp(item.getEndTime())
-          .before(new Timestamp(System.currentTimeMillis()))
-        ) {
-          toRemove.add(item);
-          InfectionMessage msg = InfectionMessage
-            .builder()
-            .seqNumber(new Random().nextLong())
-            .block(
-              Block
-                .builder()
-                .to(item.getLastBider())
-                .from(p.localNode.getId())
-                .winner(null)
-                .item(item)
-                .previousHash(
-                  p.previousBlock == null ? "init" : p.previousBlock.getHash()
-                )
-                .build()
-            )
-            .build();
-          p.log(
-            "Advertising block generation for item " +
-            item.getTitle() +
-            ":" +
-            item.getId()
-          );
-          p.infection(msg);
-        }
-      }
-  
-      p.toSell.removeAll(toRemove);
+      JOptionPane.showMessageDialog(that, "Please enter a warning message");
+    } catch (Exception ex) {
+      ex.printStackTrace();
     }
   }
 }

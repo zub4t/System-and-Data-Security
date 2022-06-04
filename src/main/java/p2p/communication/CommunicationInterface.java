@@ -33,7 +33,7 @@ public class CommunicationInterface {
             DatagramChannel channel = DatagramChannel.open();
             int bytesSent = channel.send(ByteBuffer.wrap(Util.serializeMessage(msg)), node.getAddr());
 
-            System.out.println(" Sent " + bytesSent);
+           // System.out.println(" Sent " + bytesSent);
             channel.close();
         } catch (Exception e) {
 
@@ -48,7 +48,7 @@ public class CommunicationInterface {
             DatagramChannel channel = DatagramChannel.open();
             int bytesSent = channel.send(ByteBuffer.wrap(Util.serializeMessage(msg)), receiver);
 
-            System.out.println(" Sent " + bytesSent);
+            //System.out.println(" Sent " + bytesSent);
             channel.close();
         } catch (Exception e) {
 

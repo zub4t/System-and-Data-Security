@@ -14,8 +14,8 @@ public class BlockCreation extends JFrame implements ActionListener {
   private static final long serialVersionUID = 1L;
 
   // declare some things we need
-  private JLabel lbl1, lbl2, lbl3, lbl4;
-  private JTextField blockTitle, price, duration;
+  private JLabel lbl0, lbl1, lbl2, lbl3, lbl4;
+  private JTextField blockTag, blockTitle, price, duration;
   private JButton btn1;
   private JTextArea txtArea1;
   public Peer p;
@@ -40,7 +40,11 @@ public class BlockCreation extends JFrame implements ActionListener {
     // create container to hold GUI in window
     Container pane = this.getContentPane();
     pane.setLayout(null);
-
+    //0
+    lbl0 = new JLabel("Tag");
+    lbl0.setBounds(10, 0, 80, 20);
+    blockTag = new JTextField();
+    blockTag.setBounds(70, 0, 300, 20);
     //1
     lbl1 = new JLabel("Title");
     lbl1.setBounds(10, 30, 80, 20);
@@ -73,10 +77,12 @@ public class BlockCreation extends JFrame implements ActionListener {
     JScrollPane scroll = new JScrollPane(txtArea1);
     scroll.setBounds(70, 70, 300, 100);
     //add all of the things to the pane
+    pane.add(lbl0);
     pane.add(lbl1);
     pane.add(lbl2);
     pane.add(lbl3);
     pane.add(lbl4);
+    pane.add(blockTag);
     pane.add(blockTitle);
     pane.add(scroll);
     pane.add(price);
@@ -90,6 +96,7 @@ public class BlockCreation extends JFrame implements ActionListener {
     try {
       Item item = Item
         .builder()
+        .tag(blockTag.getText())
         .title(blockTitle.getText())
         .description(txtArea1.getText())
         .price(Double.parseDouble(price.getText()))
@@ -105,6 +112,7 @@ public class BlockCreation extends JFrame implements ActionListener {
         )
         .build();
       p.toSell.add(item);
+      
       //basic error catching
     } catch (NumberFormatException ex) {
       System.out.println("Exception: " + ex);

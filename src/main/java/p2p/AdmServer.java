@@ -1,7 +1,6 @@
 package p2p;
 
 import blockchain.Block;
-import blockchain.Miner;
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
