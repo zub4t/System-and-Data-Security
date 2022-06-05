@@ -109,15 +109,20 @@ public class Peer {
 
   /**
    * @param args
-   * @throws InterruptedException
+   * @throws InterruptedException«
    */
 
-  public static void main(String[] args) throws InterruptedException {
+  public static void main(String[] args)
+    throws InterruptedException {
+    System.out.println("End:"+args[0]);
     //**********************************************/
     //iniciando um peer com um end aleatorio
     Node localNode = new Node(
       Key.random(),
-      new InetSocketAddress("192.168.0.115", Util.getRandomNumber(2001, 65535)),
+      new InetSocketAddress(
+        args[0],
+        Util.getRandomNumber(2001, 65535)
+      ),
       0
     );
     Peer p = new Peer(localNode);

@@ -110,7 +110,7 @@
               <manifest>
                 <addClasspath>true</addClasspath>
                 <classpathPrefix>lib/</classpathPrefix>
-                <mainClass>p2p.GreetingHost</mainClass>
+                <mainClass>p2p.Peer</mainClass>
               </manifest>
             </archive>
           </configuration>
