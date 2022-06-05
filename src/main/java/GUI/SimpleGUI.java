@@ -253,8 +253,8 @@ public class SimpleGUI extends JFrame implements ActionListener {
           .before(new Timestamp(System.currentTimeMillis()))
         ) {
           toRemove.add(item);
-          System.out.println(
-            "********************ANUNCIANDO********************"
+          p.log(
+            "*******Auction Finished*******"
           );
           OutBlock lstBlock = (OutBlock) p.getPreviousHash();
           InBlock inBlock = InBlock
@@ -440,9 +440,7 @@ public class SimpleGUI extends JFrame implements ActionListener {
           p.electionFinishAndPublishedWinner = false;
 
           while (!p.electionFinishAndPublishedWinner) {
-            System.out.println(
-              "AQUI esperando  " + p.electionFinishAndPublishedWinner
-            );
+           
             Thread.sleep(1000);
           }
           break;

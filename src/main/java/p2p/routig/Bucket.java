@@ -60,16 +60,11 @@ public class Bucket {
               try {
                 synchronized (RoutingTable.padlock) {
                   Thread.sleep(1000);
-                  for (Key key : p.callers) {
-                    System.out.println("key " + key);
-                  }
-
+         
                   if (!p.callers.contains(last.getId())) {
-                    System.out.println("NÂO RESPONDEU ");
                     nodes.remove(last);
                     nodes.add(node);
                   } else {
-                    System.out.println(" RESPONDEU ");
 
                     last.setLastSeen(System.currentTimeMillis());
                     p.callers.remove(last.getId());

@@ -11,8 +11,6 @@ D:\aulas\SSD\work\SDD-app\src\main\java\blockchain\Block.java
 D:\aulas\SSD\work\SDD-app\src\main\java\blockchain\Item.java
 D:\aulas\SSD\work\SDD-app\src\main\java\p2p\communication\SwapNode.java
 D:\aulas\SSD\work\SDD-app\src\main\java\GUI\SimpleGUI.java
-D:\aulas\SSD\work\SDD-app\src\main\java\p2p\protocol\InterSystemMessage.java
-D:\aulas\SSD\work\SDD-app\src\main\java\p2p\AdmServer.java
 D:\aulas\SSD\work\SDD-app\src\main\java\p2p\communication\StillAlive.java
 D:\aulas\SSD\work\SDD-app\src\main\java\p2p\Peer.java
 D:\aulas\SSD\work\SDD-app\src\main\java\p2p\protocol\InfectionMessage.java

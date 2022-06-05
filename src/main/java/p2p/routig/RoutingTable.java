@@ -72,9 +72,8 @@ public class RoutingTable {
         } catch (InterruptedException e) {
           e.printStackTrace();
         }
-        System.out.println("ACABOU A ESPERA");
         if (hash[1] != null && hash[0] != null && !hash[1].equals(hash[0])) {
-          peer.log("UM CARA ADICIONADO");
+          peer.log("New node added");
 
           HashMap<Key, Block> storageC = new HashMap<Key, Block>();
           for (Map.Entry<Key, Block> entry : peer.storage.entrySet()) {
@@ -83,18 +82,10 @@ public class RoutingTable {
           peer.storage.clear();
           for (Map.Entry<Key, Block> entry : storageC.entrySet()) {
             peer.store((OutBlock) entry.getValue());
-            peer.log("Recalculando...");
+            peer.log("Recalculating...");
           }
         }
       }
-    } else {
-      peer.log(
-        "Routing table of node=" +
-        node.getId() +
-        " can't contain itself. (localNodeId=" +
-        localNodeId +
-        ")"
-      );
     }
   }
 
@@ -104,21 +95,5 @@ public class RoutingTable {
 
   public Stream<Bucket> getBucketStream() {
     return Arrays.stream(buckets);
-  }
-
-  public List<Node> findClosest(Key lookupId, int numberOfRequiredNodes) {
-    return getBucketStream()
-      .flatMap(bucket -> bucket.getNodes().stream())
-      .sorted(
-        (node1, node2) ->
-          node1
-            .getId()
-            .getKey()
-            .xor(lookupId.getKey())
-            .abs()
-            .compareTo(node2.getId().getKey().xor(lookupId.getKey()).abs())
-      )
-      .limit(numberOfRequiredNodes)
-      .collect(Collectors.toList());
   }
 }

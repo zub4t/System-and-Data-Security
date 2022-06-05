@@ -6,7 +6,6 @@ GUI\SimpleGUI$1.class
 p2p\Task.class
 p2p\Key.class
 p2p\Peer$2.class
-p2p\protocol\InterSystemMessage.class
 p2p\protocol\InfectionMessage.class
 p2p\protocol\KademliaMessage.class
 p2p\protocol\InfectionMessage$InfectionMessageBuilder.class
@@ -31,7 +30,6 @@ blockchain\InBlock.class
 p2p\Node$NodeBuilder.class
 p2p\GreetingHost.class
 blockchain\OutBlock$OutBlockBuilder.class
-p2p\AdmServer.class
 p2p\communication\SwapNode.class
 GUI\SimpleGUI.class
 p2p\routig\Bucket.class

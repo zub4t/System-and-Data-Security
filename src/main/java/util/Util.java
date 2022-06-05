@@ -8,7 +8,6 @@ import java.nio.ByteBuffer;
 import p2p.Key;
 import p2p.Node;
 import p2p.protocol.InfectionMessage;
-import p2p.protocol.InterSystemMessage;
 import p2p.protocol.KademliaMessage;
 
 public class Util {
@@ -180,32 +179,6 @@ public class Util {
     return true;
   }
 
-  public static byte[] serializeInterSystemMessage(InterSystemMessage msg) {
-    try {
-      ByteArrayOutputStream bos = new ByteArrayOutputStream();
-      ObjectOutputStream out = new ObjectOutputStream(bos);
-      out.writeObject(msg);
-      out.flush();
-      return bos.toByteArray();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-
-    return new byte[0];
-  }
-
-  public static InterSystemMessage deserializeInterSystemMessage(byte[] b) {
-    try {
-      ByteArrayInputStream bb = new ByteArrayInputStream(b);
-      ObjectInputStream o = new ObjectInputStream(bb);
-      InterSystemMessage msg = (InterSystemMessage) o.readObject();
-      return msg;
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return null;
-  }
-
   public static byte[] serializeInfectionMessage(InfectionMessage msg) {
     try {
       ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -232,25 +205,24 @@ public class Util {
     return null;
   }
 
-
-   public static byte[] convertObjectToBytes(Object obj) {
-      ByteArrayOutputStream boas = new ByteArrayOutputStream();
-      try (ObjectOutputStream ois = new ObjectOutputStream(boas)) {
-          ois.writeObject(obj);
-          return boas.toByteArray();
-      } catch (IOException ioe) {
-          ioe.printStackTrace();
-      }
-      throw new RuntimeException();
+  public static byte[] convertObjectToBytes(Object obj) {
+    ByteArrayOutputStream boas = new ByteArrayOutputStream();
+    try (ObjectOutputStream ois = new ObjectOutputStream(boas)) {
+      ois.writeObject(obj);
+      return boas.toByteArray();
+    } catch (IOException ioe) {
+      ioe.printStackTrace();
+    }
+    throw new RuntimeException();
   }
 
-    public static Object convertBytesToObject(byte[] bytes) {
-      InputStream is = new ByteArrayInputStream(bytes);
-      try (ObjectInputStream ois = new ObjectInputStream(is)) {
-          return ois.readObject();
-      } catch (IOException | ClassNotFoundException ioe) {
-          ioe.printStackTrace();
-      }
-      throw new RuntimeException();
+  public static Object convertBytesToObject(byte[] bytes) {
+    InputStream is = new ByteArrayInputStream(bytes);
+    try (ObjectInputStream ois = new ObjectInputStream(is)) {
+      return ois.readObject();
+    } catch (IOException | ClassNotFoundException ioe) {
+      ioe.printStackTrace();
+    }
+    throw new RuntimeException();
   }
 }

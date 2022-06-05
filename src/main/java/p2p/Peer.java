@@ -111,21 +111,6 @@ public class Peer {
    * @param args
    * @throws InterruptedException
    */
-  /*
-  public static void main(String[] args) {
-    Set<Key> alreadySent = new TreeSet<>();
-    Key a = Key.random();
-    Key b = Key.random();
-
-    alreadySent.add(a);
-    alreadySent.add(b);
-    alreadySent.add(a);
-    alreadySent.add(a);
-    for (Key key : alreadySent) {
-      System.out.println(key);
-    }
-  }
-  */
 
   public static void main(String[] args) throws InterruptedException {
     //**********************************************/
@@ -157,7 +142,7 @@ public class Peer {
     p.ping("localhost", 2000);
 
     //**********************************************/
-    System.out.println("KEY:  " + localNode.getId());
+    p.log("My KEY:  " + localNode.getId());
 
     //**********************************************/
     Timer timer = new Timer();
@@ -166,21 +151,6 @@ public class Peer {
     simpleGUI = new SimpleGUI(p);
     simpleGUI.start();
 
-    ///Previously there was the possibility of remote control using a TCP connection
-    //
-    /*
-    simpleGUI.start();
-    new Thread(
-      () -> {
-        try {
-          (new AdmServer(p)).start();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
-    )
-    .start();
-  */
     service.join();
   }
 
@@ -422,9 +392,6 @@ public class Peer {
 
       //System.out.println("bucketId " + myDistance);
       //System.out.println("closest to key " + closest);
-      System.out.println(
-        "closest to node" + routingTable.getBucketId(nodes.last().getId())
-      );
 
       if (myDistance <= closest || closest == Integer.MAX_VALUE) {
         if (message.getType() == FIND_VALUE || message.getType() == STORE) {
@@ -459,9 +426,7 @@ public class Peer {
               previousBlocks.add(outBlock);
             } else {}
           }
-          System.out.println(
-            "RESPONDENDO MSG DE STORE TO " + message.getLocalNode().getId()
-          );
+          log("Sending STORE_REPLY For node " + message.getLocalNode().getId());
           message.setType(STORE_REPLY);
           message.setLocalNode((localNode));
           communicationInterface.send(receiver, message);
@@ -579,14 +544,7 @@ public class Peer {
               InfectionMessage msg = (InfectionMessage) Util.deserializeInfectionMessage(
                 message.getContent()
               );
-              /*
-              System.out.println(
-                "RECEBENDO MSG " +
-                msg.getSeqNumber() +
-                " de node " +
-                messageLocalNode.getId()
-              );
-*/
+
               if (infectionMsgs.contains(msg.seqNumber)) {
                 ctn = false;
               }
@@ -611,9 +569,9 @@ public class Peer {
                     //------------------------------------------------------------//
 
                     for (String sell : msg.toSell) {
-                      System.out.println("***********************************");
-                      System.out.println(sell);
-                      System.out.println("***********************************");
+                      log("**************Item sales processing***************");
+                      log(sell);
+                      log("***********************************");
                       for (String buy : internalInterests) {
                         if (
                           sell
@@ -667,10 +625,8 @@ public class Peer {
                     //System.out.println("RECEBENDO MSG DE QUE ALGUEM TERMINOU");
                     outBlock = (OutBlock) msg.getBlock();
                     if (blockTest(outBlock)) {
-                      System.out.println("BLOCO PASSOU NO TESTE");
+                      log("**************New candidate block***************");
                       store(outBlock);
-                    } else {
-                      System.out.println("BLOCO REPROVOU NO TESTE");
                     }
                     break;
                   case "previousHash":
@@ -730,14 +686,7 @@ public class Peer {
                             electionsVotes.put(msg.getSeqNumber(), m);
                           }
 
-                          System.out.println(
-                            "NODE " +
-                            messageLocalNode.getId() +
-                            "VOTOU EM " +
-                            outBlock.getKey() +
-                            " ATUALMENTE COM " +
-                            (current + 1)
-                          );
+                   
                           electionsVotes
                             .get(msg.getSeqNumber())
                             .put(outBlock, (current + 1));
@@ -795,7 +744,6 @@ public class Peer {
               log("Found \n" + rn);
               switch (message.getAction()) {
                 case "removeItem":
-                  System.out.println(message.getActionData());
                   UUID bidItemID = UUID.fromString(
                     message.getActionData().split(":")[0]
                   );
@@ -1064,12 +1012,8 @@ public class Peer {
             e.printStackTrace();
           }
           OutBlock block = succBlockOfHash(prevHash);
-          System.out.println(
-            "ACABOU O TEMPO DE ESPERA PRA REALMENTE DAR INICIO A ELEIÇÂO"
-          );
-          System.out.println(
-            "VOU INDICAR O BLOCO -- " + block.getKey() + " -- "
-          );
+          log("*************Initiating voting**************");
+          System.out.println("My vote is for block " + block.getKey() + " -- ");
           if (block != null) {
             if (!alreadyInitiatedVoting.contains(prevHash)) {
               alreadyInitiatedVoting.add(prevHash);
@@ -1081,11 +1025,6 @@ public class Peer {
                 .alreadySent(new TreeSet<>())
                 .build();
               infection(msg);
-            } else {
-              System.out.println(
-                " NÂO VOU REPETIR MEU VOTO, PQ EU JA INDIQUEI Alguem para " +
-                prevHash
-              );
             }
           }
         }
@@ -1098,15 +1037,13 @@ public class Peer {
    * @return Block
    */
   public OutBlock getPreviousHash() {
-    System.out.println("Node " + localNode.getId() + " precisa do hash");
     if (
       previousBlocks.size() > 0 &&
       previousBlocks.get(previousBlocks.size() - 1) != null
     ) {
-      System.out.println("OK eu tenho p block inicial");
       return previousBlocks.get(previousBlocks.size() - 1);
     } else {
-      System.out.println("Não tenho o block inicial");
+      log("requesting hash for know nodes");
 
       InfectionMessage msg = InfectionMessage
         .builder()
@@ -1129,8 +1066,6 @@ public class Peer {
         log(item.getId() + " -- " + id);
         if (item.getId().toString().equals(id.toString())) {
           return entry.getKey();
-        } else {
-          log("não igual");
         }
       }
     }
@@ -1200,8 +1135,6 @@ public class Peer {
       if ((step1) && (step2)) {
         previousBlocks.add(block);
       }
-      System.out.println("STEP1 " + step1);
-      System.out.println("STEP2 " + step2);
 
       return step1 && step2;
     }
@@ -1224,20 +1157,12 @@ class Task extends TimerTask {
       for (Map.Entry<Long, Boolean> entry : p.hasElectionToProcess.entrySet()) {
         if (entry.getValue()) {
           p.hasElectionToProcess.put(entry.getKey(), false);
-          System.out.println("EXISTE UMA VOTAÇÂO PARA SER PROCESSADA");
+          p.log("Processing voting " + entry.getKey());
           int largest = 0;
           OutBlock mostVoted = null;
           for (Map.Entry<OutBlock, Integer> election : p
             .electionsVotes.get(entry.getKey())
             .entrySet()) {
-            System.out.println(
-              "WIINER " +
-              election.getKey().getWinner() +
-              " TEM " +
-              election.getValue() +
-              " pontos"
-            );
-
             if (election.getValue() > largest) {
               mostVoted = election.getKey();
             } else if (election.getValue() == largest) {
@@ -1249,13 +1174,9 @@ class Task extends TimerTask {
             }
           }
           if (mostVoted != null) {
-            System.out.println(
-              "VOTAÇÂO FINALIZADA HASH BLOCK VENCEDOR È" + mostVoted.getKey()
+            p.log(
+              "voting completed. Block selected is" + mostVoted.getKey()
             );
-
-            System.out.println("\n");
-            System.out.println(mostVoted);
-            System.out.println("\n");
 
             mostVoted.setConfimerdKey(true);
             // p.previousBlocks.add(mostVoted);

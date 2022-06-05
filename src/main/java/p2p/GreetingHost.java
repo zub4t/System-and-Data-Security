@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.util.Timer;
-
 import p2p.communication.CommunicationInterface;
 import p2p.routig.RoutingTable;
 import util.Util;
@@ -20,7 +19,9 @@ public class GreetingHost {
       new InetSocketAddress("localhost", 2000),
       0
     );
-    System.out.println("KEY:  " + localNode.getId());
+    System.out.println(
+      " MY KEY:  " + localNode.getId() + "   --  " + localNode.getAddr()
+    );
     Peer p = new Peer(localNode);
     OutBlock outBlock = OutBlock
       .builder()
@@ -42,16 +43,7 @@ public class GreetingHost {
     p.routingTable = new RoutingTable(20, localNode.getId(), p);
     Thread service = p.startService();
 
-    new Thread(
-      () -> {
-        try {
-          (new AdmServer(p)).start();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-      }
-    )
-    .start();
+
     Timer timer = new Timer();
     timer.schedule(new Task(p), 1000, 5000);
     service.start();
