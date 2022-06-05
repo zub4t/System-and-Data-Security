@@ -52,7 +52,7 @@ public class SimpleGUI extends JFrame implements ActionListener {
     init(); // init all our things!
 
     // set window object size
-    setSize(1200, 1000);
+    setSize(1000, 750);
     setTitle(p.localNode.getId().toString());
     setVisible(true);
     setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);

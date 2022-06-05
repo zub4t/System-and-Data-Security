@@ -77,7 +77,7 @@ public class Peer {
   /**********************************************/
   // Communication
   public Node localNode;
-  private DatagramChannel inChannel;
+  public DatagramChannel channel;
   private Set<Long> kamdemliaMessagesAlreadyProcessed = new TreeSet<>();
   public RoutingTable routingTable;
   public static SocketChannel socketChannel = null;
@@ -99,9 +99,9 @@ public class Peer {
   Peer(Node localNode) {
     this.localNode = localNode;
     try {
-      inChannel = DatagramChannel.open();
+      channel = DatagramChannel.open();
       InetSocketAddress iAdd = localNode.getAddr();
-      inChannel.socket().bind(iAdd);
+      channel.socket().bind(iAdd);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -117,12 +117,12 @@ public class Peer {
     //iniciando um peer com um end aleatorio
     Node localNode = new Node(
       Key.random(),
-      new InetSocketAddress("localhost", Util.getRandomNumber(2001, 65535)),
+      new InetSocketAddress("192.168.0.115", Util.getRandomNumber(2001, 65535)),
       0
     );
     Peer p = new Peer(localNode);
     p.routingTable = new RoutingTable(20, localNode.getId(), p);
-    p.communicationInterface = new CommunicationInterface();
+    p.communicationInterface = new CommunicationInterface(p.channel);
 
     //**********************************************/
     ///setting up cryptography stuff
@@ -139,7 +139,7 @@ public class Peer {
     //initing service to listening
     Thread service = p.startService();
     service.start();
-    p.ping("localhost", 2000);
+    p.ping("34.175.136.67", 2000);
 
     //**********************************************/
     p.log("My KEY:  " + localNode.getId());
@@ -505,7 +505,9 @@ public class Peer {
     while (true) {
       try {
         ByteBuffer full = ByteBuffer.allocate(65507);
-        inChannel.receive(full);
+        InetSocketAddress clientAddress = (InetSocketAddress) channel.receive(
+          full
+        );
         byte[] m = new byte[full.position()];
         full.flip();
         OutBlock outBlock;
@@ -513,8 +515,9 @@ public class Peer {
         Key key;
         full.get(m);
         KademliaMessage message = Util.deserializeMessage(m);
+        message.getLocalNode().setAddr(clientAddress);
         Node messageLocalNode = (message.getLocalNode());
-        InetSocketAddress receiver = messageLocalNode.getAddr();
+        InetSocketAddress receiver = clientAddress;
         new Thread(
           new Runnable() {
 
@@ -686,7 +689,6 @@ public class Peer {
                             electionsVotes.put(msg.getSeqNumber(), m);
                           }
 
-                   
                           electionsVotes
                             .get(msg.getSeqNumber())
                             .put(outBlock, (current + 1));
@@ -712,9 +714,12 @@ public class Peer {
             case PING:
               message.setType(PING_REPLY);
               message.setLocalNode((this.localNode));
+              System.out.println(
+                "PING TO " + receiver + " ou seria " + clientAddress
+              );
               this.communicationInterface.send(
                   Util.serializeMessage(message),
-                  receiver
+                  clientAddress
                 );
               break;
             case FIND_NODE:
@@ -1174,9 +1179,7 @@ class Task extends TimerTask {
             }
           }
           if (mostVoted != null) {
-            p.log(
-              "voting completed. Block selected is" + mostVoted.getKey()
-            );
+            p.log("voting completed. Block selected is" + mostVoted.getKey());
 
             mostVoted.setConfimerdKey(true);
             // p.previousBlocks.add(mostVoted);

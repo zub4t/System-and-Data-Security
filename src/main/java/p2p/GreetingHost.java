@@ -16,7 +16,7 @@ public class GreetingHost {
     throws InterruptedException, UnsupportedEncodingException {
     Node localNode = new Node(
       Key.random(),
-      new InetSocketAddress("localhost", 2000),
+      new InetSocketAddress("10.204.0.2", 2000),
       0
     );
     System.out.println(
@@ -39,10 +39,10 @@ public class GreetingHost {
         .build()
     );
     p.previousBlocks.add(outBlock);
-    p.communicationInterface = new CommunicationInterface();
     p.routingTable = new RoutingTable(20, localNode.getId(), p);
-    Thread service = p.startService();
+    p.communicationInterface = new CommunicationInterface(p.channel);
 
+    Thread service = p.startService();
 
     Timer timer = new Timer();
     timer.schedule(new Task(p), 1000, 5000);

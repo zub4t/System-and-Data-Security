@@ -48,7 +48,7 @@ public class OutBlock implements Serializable, Block, Comparable<OutBlock> {
         break;
       case "InfectionMessage toBuy":
         str +=
-          "CotentType:\t" + "Subscription ad for the following items" + "\n";
+          "CotentType:\t" + "Subscription for the following items" + "\n";
 
         msg =
           (InfectionMessage) Util.convertBytesToObject(inBlock.getContent());
