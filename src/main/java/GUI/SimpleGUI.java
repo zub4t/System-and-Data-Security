@@ -67,7 +67,7 @@ public class SimpleGUI extends JFrame implements ActionListener {
 
     // intro label
     introLbl = new JLabel();
-    introLbl.setBounds(10, 10, 300, 20);
+    introLbl.setBounds(20, 10, 300, 20);
     introLbl.setText("Quick intro to app");
 
     //1
@@ -82,22 +82,22 @@ public class SimpleGUI extends JFrame implements ActionListener {
     txtfld2.setBounds(70, 60, 100, 20);
 
     // 3
-    lbl3 = new JLabel("Subscribe");
-    lbl3.setBounds(10, 90, 80, 20);
+    lbl3 = new JLabel("SUB");
+    lbl3.setBounds(10, 60, 80, 20);
     txtfld3 = new JTextField();
-    txtfld3.setBounds(70, 90, 100, 20);
+    txtfld3.setBounds(70, 60, 100, 20);
 
     btn0 = new JButton("List my chain view");
-    btn0.setBounds(10, 170, 200, 20);
+    btn0.setBounds(150, 170, 200, 20);
     btn0.addActionListener(this);
 
     // generate button
     btn1 = new JButton("List Routing Table");
-    btn1.setBounds(10, 200, 200, 20);
+    btn1.setBounds(150, 200, 200, 20);
     btn1.addActionListener(this);
 
     btn2 = new JButton("List Local Stored Block");
-    btn2.setBounds(10, 230, 200, 20);
+    btn2.setBounds(150, 230, 200, 20);
     btn2.addActionListener(this);
 
     btn3 = new JButton("BID");
@@ -109,62 +109,60 @@ public class SimpleGUI extends JFrame implements ActionListener {
     btn7.addActionListener(this);
 
     btn8 = new JButton("Submit");
-    btn8.setBounds(180, 90, 200, 20);
+    btn8.setBounds(180, 60, 200, 20);
     btn8.addActionListener(this);
 
     btn4 = new JButton("Block Creation");
-    btn4.setBounds(10, 260, 200, 20);
+    btn4.setBounds(150, 260, 200, 20);
     btn4.addActionListener(this);
 
     btn5 = new JButton("List To Sell Items");
-    btn5.setBounds(10, 290, 200, 20);
+    btn5.setBounds(150, 290, 200, 20);
     btn5.addActionListener(this);
 
     btn6 = new JButton("Advertise Items");
-    btn6.setBounds(10, 320, 200, 20);
+    btn6.setBounds(150, 320, 200, 20);
     btn6.addActionListener(this);
 
     btn9 = new JButton("List Internal Int");
-    btn9.setBounds(10, 350, 200, 20);
+    btn9.setBounds(150, 350, 200, 20);
     btn9.addActionListener(this);
 
     btn10 = new JButton("List External Int");
-    btn10.setBounds(10, 380, 200, 20);
+    btn10.setBounds(150, 380, 200, 20);
     btn10.addActionListener(this);
 
     btn11 = new JButton("List Intersection Int");
-    btn11.setBounds(10, 410, 200, 20);
+    btn11.setBounds(150, 410, 200, 20);
     btn11.addActionListener(this);
     //text area output (with formatted font)
     txtArea1 = new JTextArea("");
     txtArea1.setEditable(false);
     txtArea1.setFont(new Font("monospaced", Font.PLAIN, 12));
     JScrollPane scroll = new JScrollPane(txtArea1);
-    scroll.setBounds(590, 20, 570, 400);
+    scroll.setBounds(400, 20, 570, 200);
 
     txtArea2 = new JTextArea("");
     txtArea2.setEditable(false);
     txtArea2.setFont(new Font("monospaced", Font.ROMAN_BASELINE, 12));
     JScrollPane scroll1 = new JScrollPane(txtArea2);
-    scroll1.setBounds(10, 450, 570, 190);
+    scroll1.setBounds(10, 450, 570, 100);
 
     txtArea4 = new JTextArea("");
     txtArea4.setEditable(false);
     txtArea4.setFont(new Font("monospaced", Font.ROMAN_BASELINE, 12));
     JScrollPane scroll3 = new JScrollPane(txtArea4);
-    scroll3.setBounds(10, 650, 570, 190);
+    scroll3.setBounds(10, 560, 570, 100);
 
     txtArea3 = new JTextArea("");
     txtArea3.setEditable(false);
     txtArea3.setFont(new Font("monospaced", Font.ROMAN_BASELINE, 12));
     JScrollPane scroll2 = new JScrollPane(txtArea3);
-    scroll2.setBounds(590, 450, 570, 400);
+    scroll2.setBounds(400, 230, 570, 200);
 
     pane.add(lbl1);
-    pane.add(lbl2);
     pane.add(lbl3);
     pane.add(txtfld1);
-    pane.add(txtfld2);
     pane.add(txtfld3);
     pane.add(btn0);
     pane.add(btn1);
@@ -173,7 +171,6 @@ public class SimpleGUI extends JFrame implements ActionListener {
     pane.add(btn4);
     pane.add(btn5);
     pane.add(btn6);
-    pane.add(btn7);
     pane.add(btn8);
     pane.add(btn9);
     pane.add(btn10);
