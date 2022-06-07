@@ -408,6 +408,8 @@ public class SimpleGUI extends JFrame implements ActionListener {
               .seqNumber(new Random().nextLong())
               .build();
           p.infection(msg);
+
+          
           //generating block for this advertisement
           /**------------------------------------ */
           //Generating IN block to advertise
@@ -465,7 +467,7 @@ public class SimpleGUI extends JFrame implements ActionListener {
               .seqNumber(new Random().nextLong())
               .build();
           p.infection(msg);
-
+          System.out.println("ENVIANDO INTERESSE");
           //generating block for this advertisement
           /**------------------------------------ */
           //Generating IN block to advertise

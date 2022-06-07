@@ -49,6 +49,8 @@ public class RoutingTable {
   }
 
   public void addNode(Node node) {
+    peer.log("New node added " + node.getId() + "  " + node.getAddr());
+
     if (
       !node.getId().equals(localNodeId) &&
       !buckets[getBucketId(node.getId())].getNodes().contains(node)
@@ -73,8 +75,6 @@ public class RoutingTable {
           e.printStackTrace();
         }
         if (hash[1] != null && hash[0] != null && !hash[1].equals(hash[0])) {
-          peer.log("New node added");
-
           HashMap<Key, Block> storageC = new HashMap<Key, Block>();
           for (Map.Entry<Key, Block> entry : peer.storage.entrySet()) {
             storageC.put(entry.getKey(), entry.getValue());

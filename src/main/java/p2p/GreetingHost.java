@@ -2,7 +2,6 @@ package p2p;
 
 import blockchain.InBlock;
 import blockchain.OutBlock;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.util.Timer;
@@ -41,7 +40,7 @@ public class GreetingHost {
     p.previousBlocks.add(outBlock);
     p.routingTable = new RoutingTable(20, localNode.getId(), p);
     p.communicationInterface = new CommunicationInterface(p.channel);
-
+    p.isGreetingHost = true;
     Thread service = p.startService();
 
     Timer timer = new Timer();

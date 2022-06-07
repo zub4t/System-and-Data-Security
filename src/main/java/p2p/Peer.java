@@ -44,6 +44,7 @@ import p2p.routig.RoutingTable;
 import util.Util;
 
 public class Peer {
+  public boolean isGreetingHost = false;
   public OutBlock notConfirmedBlock;
   public Set<String> statusBlockMessages = new HashSet<>();
   public Set<String> alreadyInitiatedVoting = new HashSet<>();
@@ -109,22 +110,18 @@ public class Peer {
 
   /**
    * @param args
-   * @throws InterruptedException«
+   * @throws InterruptedException
    */
 
-  public static void main(String[] args)
-    throws InterruptedException {
-    System.out.println("End:"+args[0]);
+  public static void main(String[] args) throws InterruptedException {
     //**********************************************/
     //iniciando um peer com um end aleatorio
     Node localNode = new Node(
       Key.random(),
-      new InetSocketAddress(
-        args[0],
-        Util.getRandomNumber(2001, 65535)
-      ),
+      new InetSocketAddress(args[0], Util.getRandomNumber(2001, 65535)),
       0
     );
+    System.out.println(localNode);
     Peer p = new Peer(localNode);
     p.routingTable = new RoutingTable(20, localNode.getId(), p);
     p.communicationInterface = new CommunicationInterface(p.channel);
@@ -341,6 +338,7 @@ public class Peer {
           for (Key key : msgKey) {
             if (node.getId().toString().equals(key.toString())) {
               send = false;
+              System.out.println(node.getAddr());
             }
           }
 
@@ -434,7 +432,13 @@ public class Peer {
           log("Sending STORE_REPLY For node " + message.getLocalNode().getId());
           message.setType(STORE_REPLY);
           message.setLocalNode((localNode));
-          communicationInterface.send(receiver, message);
+          
+          try{
+            communicationInterface.send(receiver, message);
+
+          }catch(Exception e){
+            e.printStackTrace();
+          }
         } else {
           // Handle FIND_NODE case
           if (!key.toString().equals(localNode.getId().toString())) {
@@ -520,19 +524,25 @@ public class Peer {
         Key key;
         full.get(m);
         KademliaMessage message = Util.deserializeMessage(m);
-        message.getLocalNode().setAddr(clientAddress);
+      
+        if (
+          isGreetingHost ||
+          message.getLocalNode().getAddr().getHostName().equals("10.204.0.2")
+        ) {
+          message.getLocalNode().setAddr(clientAddress);
+        }
         Node messageLocalNode = (message.getLocalNode());
-        InetSocketAddress receiver = clientAddress;
+        InetSocketAddress receiver = messageLocalNode.getAddr();
         new Thread(
           new Runnable() {
 
             public void run() {
+           
               routingTable.addNode(messageLocalNode);
             }
           }
         )
         .start();
-
         //
         //System.out.println(message.getType());
         if (true) {
@@ -724,7 +734,7 @@ public class Peer {
               );
               this.communicationInterface.send(
                   Util.serializeMessage(message),
-                  clientAddress
+                  receiver
                 );
               break;
             case FIND_NODE:
