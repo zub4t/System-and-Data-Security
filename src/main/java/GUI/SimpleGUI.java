@@ -112,7 +112,7 @@ public class SimpleGUI extends JFrame implements ActionListener {
     btn8.setBounds(180, 60, 200, 20);
     btn8.addActionListener(this);
 
-    btn4 = new JButton("Block Creation");
+    btn4 = new JButton("Item Creation");
     btn4.setBounds(150, 260, 200, 20);
     btn4.addActionListener(this);
 
@@ -250,9 +250,7 @@ public class SimpleGUI extends JFrame implements ActionListener {
           .before(new Timestamp(System.currentTimeMillis()))
         ) {
           toRemove.add(item);
-          p.log(
-            "*******Auction Finished*******"
-          );
+          p.log("*******Auction Finished*******");
           OutBlock lstBlock = (OutBlock) p.getPreviousHash();
           InBlock inBlock = InBlock
             .builder()
@@ -263,6 +261,8 @@ public class SimpleGUI extends JFrame implements ActionListener {
             .previousHash(lstBlock.getHash())
             .timeStamp(System.currentTimeMillis())
             .build();
+          byte[] ss = p.sing((inBlock));
+          inBlock.setDigitalSignature(ss);
 
           InfectionMessage msg = InfectionMessage
             .builder()
@@ -373,7 +373,7 @@ public class SimpleGUI extends JFrame implements ActionListener {
         case "List Routing Table":
           txtArea1.setText(p.listRoutingTable());
           break;
-        case "Block Creation":
+        case "Item Creation":
           BlockCreation blockCreation = new BlockCreation(that.p);
           blockCreation.start();
           break;
@@ -409,7 +409,6 @@ public class SimpleGUI extends JFrame implements ActionListener {
               .build();
           p.infection(msg);
 
-          
           //generating block for this advertisement
           /**------------------------------------ */
           //Generating IN block to advertise
@@ -439,7 +438,6 @@ public class SimpleGUI extends JFrame implements ActionListener {
           p.electionFinishAndPublishedWinner = false;
 
           while (!p.electionFinishAndPublishedWinner) {
-           
             Thread.sleep(1000);
           }
           break;
@@ -481,7 +479,6 @@ public class SimpleGUI extends JFrame implements ActionListener {
               .previousHash(lstBlock.getHash())
               .build();
           byte[] ss = p.sing((inBlock));
-          System.out.println("MINHA ASSINATURA " + ss);
           inBlock.setDigitalSignature(ss);
           /**------------------------------------ */
           // Allow that every node tries to win the run for this block

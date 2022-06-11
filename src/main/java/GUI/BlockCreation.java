@@ -71,7 +71,7 @@ public class BlockCreation extends JFrame implements ActionListener {
     btn1.setBounds(90, 330, 200, 20);
     btn1.addActionListener(this);
 
-    txtArea1 = new JTextArea("My Text Area!");
+    txtArea1 = new JTextArea("");
     txtArea1.setEditable(true);
     txtArea1.setFont(new Font("monospaced", Font.PLAIN, 12));
     JScrollPane scroll = new JScrollPane(txtArea1);
@@ -106,7 +106,7 @@ public class BlockCreation extends JFrame implements ActionListener {
         .endTime(
           new Timestamp(
             (new Timestamp(System.currentTimeMillis())).getTime() +
-            TimeUnit.MINUTES.toMillis((int) Double.parseDouble(price.getText()))
+            TimeUnit.MINUTES.toMillis((int) Double.parseDouble(duration.getText()))
           )
           .getTime()
         )

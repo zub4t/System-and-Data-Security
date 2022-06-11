@@ -15,7 +15,7 @@ public class GreetingHost {
     throws InterruptedException, UnsupportedEncodingException {
     Node localNode = new Node(
       Key.random(),
-      new InetSocketAddress("10.204.0.2", 2000),
+      new InetSocketAddress("localhost", 2000),
       0
     );
     System.out.println(
