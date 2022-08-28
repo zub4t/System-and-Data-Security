@@ -1,5 +1,13 @@
 # System And Data Security
 # Assignment: Public Ledger for Auctions
+## YouTubeLink https://youtu.be/wp89T5Uh9SQ
+### Build
+```
+mvn clean
+mvn install
+mvn package
+```
+
 
 ## System and Data Security 21/
 
